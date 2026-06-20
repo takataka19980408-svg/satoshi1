@@ -345,186 +345,272 @@ export class MapSystem {
 
     const cx = dx + 16;
     const palette = {
-      elder:      { body: '#7a5818', trim: '#9a7828', hair: '#d8d8d8', skin: '#d8a870' },
-      mom:        { body: '#c85878', trim: '#e878a0', hair: '#3a1808', skin: '#f0c080' },
-      villager_a: { body: '#385878', trim: '#486898', hair: '#281408', skin: '#e8b870' },
-      villager_b: { body: '#783858', trim: '#986878', hair: '#180808', skin: '#e8b870' },
-      villager_c: { body: '#387838', trim: '#489858', hair: '#281808', skin: '#f0c080' },
-      ril:        { body: '#5070b8', trim: '#7090d8', hair: '#e8e870', skin: '#f0c880' },
+      elder:      { body: '#7a5818', trim: '#b08828', hair: '#d0d0c8', skin: '#d8a870', pants: '#3a2a10' },
+      mom:        { body: '#c85878', trim: '#e888b0', hair: '#2a1008', skin: '#f0c080', pants: '#3a2040' },
+      villager_a: { body: '#385878', trim: '#5888a8', hair: '#1e0e04', skin: '#e8b870', pants: '#1e2840' },
+      villager_b: { body: '#783858', trim: '#a05878', hair: '#120404', skin: '#e8b870', pants: '#282038' },
+      villager_c: { body: '#387838', trim: '#509850', hair: '#1a1008', skin: '#f0c080', pants: '#203820' },
+      ril:        { body: '#5070b8', trim: '#80a0e0', hair: '#e8d840', skin: '#f0c880', pants: '#1c1c40' },
     };
-    const c = palette[npc.sprite] || { body: '#505058', trim: '#707078', hair: '#282828', skin: '#e8b870' };
+    const c = palette[npc.sprite] || { body: '#505058', trim: '#707078', hair: '#282828', skin: '#e8b870', pants: '#202030' };
 
     // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.fillRect(cx-8, dy+30, 16, 3);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    ctx.fillRect(cx-8, dy+30, 16, 4);
+
+    // ===== 輪郭シルエット =====
+    ctx.fillStyle = '#04040e';
+    ctx.fillRect(cx-7, dy-1, 14, 14);   // 頭
+    ctx.fillRect(cx-8, dy+10, 16, 14);  // 体
+    ctx.fillRect(cx-8, dy+22, 16, 10);  // 足
 
     // 靴
-    ctx.fillStyle = '#1a1a28';
-    ctx.fillRect(cx-8, dy+29, 6, 4);
-    ctx.fillRect(cx+2, dy+29, 6, 4);
+    ctx.fillStyle = '#14141e';
+    ctx.fillRect(cx-7, dy+28, 6, 4);
+    ctx.fillRect(cx+1, dy+28, 6, 4);
+    ctx.fillStyle = '#1e2030';
+    ctx.fillRect(cx-6, dy+28, 3, 1);
+    ctx.fillRect(cx+2, dy+28, 3, 1);
 
-    // 足（ズボン/スカート）
-    ctx.fillStyle = '#282840';
+    // 足（ズボン）
+    ctx.fillStyle = c.pants || '#202030';
     ctx.fillRect(cx-7, dy+22, 5, 8);
     ctx.fillRect(cx+2, dy+22, 5, 8);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(cx-7, dy+22, 2, 7);
+    ctx.fillRect(cx+2, dy+22, 2, 7);
+
+    // 腕（肌）
+    ctx.fillStyle = c.skin;
+    ctx.fillRect(cx-11, dy+12, 4, 9);
+    ctx.fillRect(cx+7, dy+12, 4, 9);
+    // 袖
+    ctx.fillStyle = c.body;
+    ctx.fillRect(cx-11, dy+11, 4, 5);
+    ctx.fillRect(cx+7, dy+11, 4, 5);
 
     // 胴体
     ctx.fillStyle = c.body;
-    ctx.fillRect(cx-7, dy+11, 14, 12);
+    ctx.fillRect(cx-6, dy+11, 12, 12);
+    // 衿・トリム
     ctx.fillStyle = c.trim;
-    ctx.fillRect(cx-7, dy+11, 14, 2);   // 衿
+    ctx.fillRect(cx-6, dy+11, 12, 3);
     // 陰影
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.fillRect(cx+5, dy+11, 2, 12);
-
-    // 腕
-    ctx.fillStyle = c.skin;
-    ctx.fillRect(cx-11, dy+12, 4, 9);
-    ctx.fillRect(cx+7,  dy+12, 4, 9);
-    ctx.fillStyle = c.body;
-    ctx.fillRect(cx-11, dy+11, 4, 4);
-    ctx.fillRect(cx+7,  dy+11, 4, 4);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillRect(cx+4, dy+11, 2, 12);
+    ctx.fillRect(cx-6, dy+11, 2, 12);
 
     // 首
     ctx.fillStyle = c.skin;
-    ctx.fillRect(cx-2, dy+8, 4, 4);
+    ctx.fillRect(cx-2, dy+8, 4, 5);
 
-    // 頭
+    // 頭（顔）
     ctx.fillStyle = c.skin;
     ctx.fillRect(cx-5, dy+1, 10, 9);
-    // 頬の陰影
-    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+    // 頬の立体感
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.fillRect(cx-5, dy+1, 2, 9);
     ctx.fillRect(cx+3, dy+1, 2, 9);
 
     // 髪
     ctx.fillStyle = c.hair;
     ctx.fillRect(cx-6, dy, 12, 4);
-    ctx.fillRect(cx-6, dy+2, 2, 8);
-    ctx.fillRect(cx+4, dy+2, 2, 8);
+    ctx.fillRect(cx-7, dy+2, 3, 8);
+    ctx.fillRect(cx+4, dy+2, 3, 8);
 
     // 目
-    ctx.fillStyle = '#101018';
-    ctx.fillRect(cx-3, dy+6, 2, 2);
-    ctx.fillRect(cx+1, dy+6, 2, 2);
+    ctx.fillStyle = '#0a0a18';
+    ctx.fillRect(cx-4, dy+5, 3, 3);
+    ctx.fillRect(cx+1, dy+5, 3, 3);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx-2, dy+6, 1, 1);
-    ctx.fillRect(cx+2, dy+6, 1, 1);
+    ctx.fillRect(cx-3, dy+5, 1, 1);
+    ctx.fillRect(cx+2, dy+5, 1, 1);
+    // 眉
+    ctx.fillStyle = c.hair;
+    ctx.fillRect(cx-4, dy+4, 3, 1);
+    ctx.fillRect(cx+1, dy+4, 3, 1);
+    // 鼻
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(cx, dy+7, 1, 1);
   }
 
   _drawSatoshi(ctx, dx, dy, dir) {
     const cx = dx + 16;
 
     // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.22)';
-    ctx.fillRect(cx-9, dy+30, 18, 4);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)';
+    ctx.fillRect(cx-9, dy+30, 18, 5);
 
-    // 靴
-    ctx.fillStyle = '#111122';
-    ctx.fillRect(cx-8, dy+29, 7, 4);
-    ctx.fillRect(cx+1, dy+29, 7, 4);
-    // 靴の光沢
-    ctx.fillStyle = '#1e2038';
-    ctx.fillRect(cx-7, dy+29, 3, 1);
-    ctx.fillRect(cx+2, dy+29, 3, 1);
+    // ===== 輪郭シルエット（先に塗る） =====
+    ctx.fillStyle = '#03030c';
+    ctx.fillRect(cx-8, dy-1, 16, 13);   // 頭
+    if (dir === 'up') {
+      ctx.fillRect(cx-12, dy+10, 24, 13); // 体+リュック
+    } else {
+      ctx.fillRect(cx-12, dy+10, 24, 13); // 体+腕
+    }
+    ctx.fillRect(cx-9, dy+21, 18, 12);  // 足+靴
 
-    // ズボン（ネイビー）
-    ctx.fillStyle = '#1c2048';
+    // ===== 靴 =====
+    ctx.fillStyle = '#161624';
+    ctx.fillRect(cx-8, dy+28, 7, 5);
+    ctx.fillRect(cx+1, dy+28, 7, 5);
+    ctx.fillStyle = '#22223a';
+    ctx.fillRect(cx-7, dy+28, 3, 1);
+    ctx.fillRect(cx+2, dy+28, 3, 1);
+
+    // ===== ズボン =====
+    ctx.fillStyle = '#1a1e50';
     ctx.fillRect(cx-7, dy+22, 5, 8);
     ctx.fillRect(cx+2, dy+22, 5, 8);
-    // ズボンのハイライト
-    ctx.fillStyle = '#283060';
+    ctx.fillStyle = '#2a2e68';
     ctx.fillRect(cx-7, dy+22, 2, 7);
     ctx.fillRect(cx+2, dy+22, 2, 7);
 
-    // ベルト
-    ctx.fillStyle = '#2a1808';
-    ctx.fillRect(cx-8, dy+21, 16, 2);
-    ctx.fillStyle = '#806020';
-    ctx.fillRect(cx-1, dy+21, 4, 2);  // バックル
+    // ===== ベルト =====
+    ctx.fillStyle = '#28160a';
+    ctx.fillRect(cx-7, dy+21, 14, 2);
+    ctx.fillStyle = '#c08828';
+    ctx.fillRect(cx-2, dy+21, 4, 2);
+    ctx.fillStyle = '#e8b040';
+    ctx.fillRect(cx-1, dy+21, 2, 1);
 
+    // ===== 体・腕 =====
     if (dir === 'up') {
-      // 後ろ向き — リュック表示
-      ctx.fillStyle = '#7a4c24';
-      ctx.fillRect(cx-11, dy+12, 6, 10);
-      ctx.fillRect(cx+5,  dy+12, 6, 10);
-      ctx.fillStyle = '#9a6030';
-      ctx.fillRect(cx-10, dy+13, 4, 8);
-      ctx.fillRect(cx+6,  dy+13, 4, 8);
+      // リュック（背面）
+      ctx.fillStyle = '#6a4418';
+      ctx.fillRect(cx-11, dy+11, 6, 10);
+      ctx.fillRect(cx+5, dy+11, 6, 10);
+      ctx.fillStyle = '#8a5820';
+      ctx.fillRect(cx-10, dy+12, 4, 8);
+      ctx.fillRect(cx+6, dy+12, 4, 8);
+      ctx.fillStyle = '#c08838';
+      ctx.fillRect(cx-10, dy+12, 1, 8);
+      ctx.fillRect(cx+6, dy+12, 1, 8);
+      // リュックのバックル
+      ctx.fillStyle = '#d4a040';
+      ctx.fillRect(cx-8, dy+16, 2, 2);
+      ctx.fillRect(cx+6, dy+16, 2, 2);
       // シャツ背面
-      ctx.fillStyle = '#1a3a99';
-      ctx.fillRect(cx-6, dy+11, 12, 11);
-      ctx.fillStyle = '#122870';
-      ctx.fillRect(cx-6, dy+11, 2, 11);
-      ctx.fillRect(cx+4, dy+11, 2, 11);
+      ctx.fillStyle = '#1c44bb';
+      ctx.fillRect(cx-5, dy+11, 10, 11);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.fillRect(cx-5, dy+11, 2, 11);
+      ctx.fillRect(cx+3, dy+11, 2, 11);
     } else {
-      // 腕（肌色）
-      ctx.fillStyle = '#f0c080';
-      ctx.fillRect(cx-11, dy+12, 4, 10);
-      ctx.fillRect(cx+7,  dy+12, 4, 10);
+      // 腕（肌）
+      ctx.fillStyle = '#f2c484';
+      ctx.fillRect(cx-11, dy+12, 4, 9);
+      ctx.fillRect(cx+7, dy+12, 4, 9);
       // 袖
-      ctx.fillStyle = '#1a3a99';
+      ctx.fillStyle = '#1c44bb';
       ctx.fillRect(cx-11, dy+11, 4, 5);
-      ctx.fillRect(cx+7,  dy+11, 4, 5);
+      ctx.fillRect(cx+7, dy+11, 4, 5);
       // 手
-      ctx.fillStyle = '#e8b870';
-      ctx.fillRect(cx-11, dy+21, 4, 3);
-      ctx.fillRect(cx+7,  dy+21, 4, 3);
+      ctx.fillStyle = '#e8b878';
+      ctx.fillRect(cx-11, dy+20, 4, 3);
+      ctx.fillRect(cx+7, dy+20, 4, 3);
+      // 手の指先（少し暗め）
+      ctx.fillStyle = '#d4a064';
+      ctx.fillRect(cx-11, dy+22, 4, 1);
+      ctx.fillRect(cx+7, dy+22, 4, 1);
 
-      // シャツ（正面・横）
-      ctx.fillStyle = '#1a3a99';
-      ctx.fillRect(cx-6, dy+11, 12, 11);
-      // シャツの陰影
-      ctx.fillStyle = '#122870';
-      ctx.fillRect(cx-6, dy+11, 2, 11);
-      ctx.fillRect(cx+4, dy+11, 2, 11);
-      // シャツのライン
-      ctx.fillStyle = '#2a4aaa';
-      ctx.fillRect(cx-4, dy+12, 8, 1);
+      // シャツ正面
+      ctx.fillStyle = '#1c44bb';
+      ctx.fillRect(cx-5, dy+11, 10, 11);
+      // 胴の陰影
+      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillRect(cx-5, dy+11, 2, 11);
+      ctx.fillRect(cx+3, dy+11, 2, 11);
+      // シャツライン（スポーティ）
+      ctx.fillStyle = '#3060dd';
+      ctx.fillRect(cx-3, dy+13, 6, 1);
+      ctx.fillRect(cx-3, dy+16, 6, 1);
     }
 
-    // 首
-    ctx.fillStyle = '#f0c080';
-    ctx.fillRect(cx-2, dy+8, 4, 4);
+    // ===== 首 =====
+    ctx.fillStyle = '#f2c484';
+    ctx.fillRect(cx-2, dy+8, 4, 5);
 
-    // 頭（顔）
-    ctx.fillStyle = '#f0c080';
+    // ===== 頭（顔） =====
+    ctx.fillStyle = '#f2c484';
     ctx.fillRect(cx-5, dy+1, 10, 9);
-    // 頬の立体感
-    ctx.fillStyle = '#e0b070';
+    // 頬の立体感（左右に影）
+    ctx.fillStyle = '#e0ae70';
     ctx.fillRect(cx-5, dy+1, 2, 9);
     ctx.fillRect(cx+3, dy+1, 2, 9);
+    // 頬の赤み
+    ctx.fillStyle = 'rgba(220,100,80,0.22)';
+    ctx.fillRect(cx-4, dy+6, 2, 2);
+    ctx.fillRect(cx+2, dy+6, 2, 2);
 
-    // 髪
-    ctx.fillStyle = '#181018';
+    // ===== 髪 =====
+    ctx.fillStyle = '#120e12';
     ctx.fillRect(cx-6, dy, 12, 4);      // 前髪
     ctx.fillRect(cx-7, dy+2, 3, 8);     // 左サイド
     ctx.fillRect(cx+4, dy+2, 3, 8);     // 右サイド
+    ctx.fillRect(cx-6, dy+9, 2, 2);     // もみあげ
+    ctx.fillRect(cx+4, dy+9, 2, 2);
     // 髪のハイライト
-    ctx.fillStyle = '#2a1a2a';
-    ctx.fillRect(cx-3, dy, 4, 2);
+    ctx.fillStyle = '#28182a';
+    ctx.fillRect(cx-1, dy, 5, 2);
+    ctx.fillRect(cx-2, dy+1, 1, 1);
 
-    // 目・表情（方向別）
+    // ===== 目・表情（方向別） =====
     if (dir !== 'up') {
-      ctx.fillStyle = '#1c2248';
       if (dir === 'left') {
-        ctx.fillRect(cx-4, dy+6, 2, 2);
-        ctx.fillStyle = '#f0f0ff';
+        // 左向き（片目）
+        ctx.fillStyle = '#100e30';
+        ctx.fillRect(cx-5, dy+5, 3, 3);
+        ctx.fillStyle = '#3848b8';
+        ctx.fillRect(cx-5, dy+5, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx-5, dy+5, 1, 1);
+        ctx.fillStyle = '#7890e0';
         ctx.fillRect(cx-4, dy+6, 1, 1);
       } else if (dir === 'right') {
-        ctx.fillRect(cx+2, dy+6, 2, 2);
-        ctx.fillStyle = '#f0f0ff';
-        ctx.fillRect(cx+3, dy+6, 1, 1);
+        // 右向き（片目）
+        ctx.fillStyle = '#100e30';
+        ctx.fillRect(cx+2, dy+5, 3, 3);
+        ctx.fillStyle = '#3848b8';
+        ctx.fillRect(cx+2, dy+5, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx+4, dy+5, 1, 1);
+        ctx.fillStyle = '#7890e0';
+        ctx.fillRect(cx+2, dy+6, 1, 1);
       } else {
-        ctx.fillRect(cx-3, dy+6, 2, 2);
-        ctx.fillRect(cx+1, dy+6, 2, 2);
-        ctx.fillStyle = '#f0f0ff';
-        ctx.fillRect(cx-2, dy+6, 1, 1);
+        // 正面（両目）
+        ctx.fillStyle = '#100e30';
+        ctx.fillRect(cx-4, dy+5, 3, 3);
+        ctx.fillRect(cx+1, dy+5, 3, 3);
+        ctx.fillStyle = '#3848b8';
+        ctx.fillRect(cx-4, dy+5, 3, 2);
+        ctx.fillRect(cx+1, dy+5, 3, 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx-4, dy+5, 1, 1);
+        ctx.fillRect(cx+3, dy+5, 1, 1);
+        ctx.fillStyle = '#7890e0';
+        ctx.fillRect(cx-3, dy+6, 1, 1);
         ctx.fillRect(cx+2, dy+6, 1, 1);
       }
+      // 眉毛
+      ctx.fillStyle = '#1a1218';
+      if (dir === 'left')       ctx.fillRect(cx-5, dy+4, 3, 1);
+      else if (dir === 'right') ctx.fillRect(cx+2, dy+4, 3, 1);
+      else {
+        ctx.fillRect(cx-4, dy+4, 3, 1);
+        ctx.fillRect(cx+1, dy+4, 3, 1);
+      }
       // 鼻
-      ctx.fillStyle = '#d4a060';
-      ctx.fillRect(cx-1, dy+8, 2, 1);
+      ctx.fillStyle = '#c89060';
+      ctx.fillRect(cx, dy+7, 1, 1);
+      // 口（正面のみ）
+      if (dir === 'down') {
+        ctx.fillStyle = '#b07050';
+        ctx.fillRect(cx-1, dy+8, 3, 1);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(cx, dy+8, 1, 1);
+      }
     }
   }
 
@@ -532,75 +618,125 @@ export class MapSystem {
     const cx = dx + 16;
 
     // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
-    ctx.fillRect(cx-8, dy+27, 16, 3);
+    ctx.fillStyle = 'rgba(0,0,0,0.22)';
+    ctx.fillRect(cx-8, dy+28, 16, 4);
 
-    // 足（前）
-    ctx.fillStyle = '#d8d4c4';
-    ctx.fillRect(cx-8, dy+24, 5, 6);
-    ctx.fillRect(cx+3, dy+24, 5, 6);
+    // ===== 輪郭シルエット =====
+    ctx.fillStyle = '#04040c';
+    ctx.fillRect(cx-11, dy+1, 22, 13);  // 頭+耳
+    ctx.fillRect(cx-10, dy+12, 20, 14); // 体
+    ctx.fillRect(cx-9, dy+23, 18, 7);   // 足
+    ctx.fillRect(cx+7, dy+13, 10, 10);  // 尻尾
+
+    // ===== 足（前足） =====
+    ctx.fillStyle = '#dedad2';
+    ctx.fillRect(cx-8, dy+24, 5, 7);
+    ctx.fillRect(cx+3, dy+24, 5, 7);
     // 肉球
-    ctx.fillStyle = '#c0a0a8';
-    ctx.fillRect(cx-8, dy+28, 5, 2);
-    ctx.fillRect(cx+3, dy+28, 5, 2);
+    ctx.fillStyle = '#c4a0b0';
+    ctx.fillRect(cx-8, dy+29, 5, 2);
+    ctx.fillRect(cx+3, dy+29, 5, 2);
+    ctx.fillStyle = '#d8b0c0';
+    ctx.fillRect(cx-8, dy+29, 2, 1);
+    ctx.fillRect(cx+3, dy+29, 2, 1);
 
-    // 体
+    // ===== 体 =====
     ctx.fillStyle = '#f0ede0';
     ctx.fillRect(cx-9, dy+14, 18, 12);
-    // 体の陰影（右側）
-    ctx.fillStyle = '#d8d4c4';
+    // 体の陰影
+    ctx.fillStyle = '#d0ccc0';
     ctx.fillRect(cx+7, dy+14, 2, 12);
-    ctx.fillRect(cx-9, dy+24, 18, 2);
+    ctx.fillRect(cx-9, dy+23, 18, 3);
+    // お腹の明るい部分
+    ctx.fillStyle = '#f8f5ec';
+    ctx.fillRect(cx-5, dy+16, 10, 6);
 
-    // 尻尾（ふわふわ）
+    // ===== 尻尾（ふわふわ円形） =====
     ctx.fillStyle = '#f0ede0';
-    ctx.fillRect(cx+8, dy+16, 7, 7);
-    ctx.fillRect(cx+9, dy+14, 5, 3);
-    ctx.fillStyle = '#d8d4c4';
-    ctx.fillRect(cx+13, dy+16, 2, 7);
+    ctx.fillRect(cx+7, dy+14, 8, 8);
+    ctx.fillRect(cx+8, dy+13, 6, 2);
+    ctx.fillRect(cx+8, dy+22, 6, 2);
+    ctx.fillStyle = '#d0ccc0';
+    ctx.fillRect(cx+13, dy+14, 2, 8);
+    ctx.fillStyle = '#f8f5ec';
+    ctx.fillRect(cx+8, dy+16, 4, 4);
 
-    // 頭
+    // ===== 頭 =====
     ctx.fillStyle = '#f0ede0';
     ctx.fillRect(cx-7, dy+4, 14, 12);
+    // 頭の丸み（角を少し削る）
+    ctx.fillStyle = '#04040c';
+    ctx.fillRect(cx-7, dy+4, 1, 1);
+    ctx.fillRect(cx+6, dy+4, 1, 1);
+    ctx.fillRect(cx-7, dy+15, 1, 1);
+    ctx.fillRect(cx+6, dy+15, 1, 1);
     // 頭の陰影
-    ctx.fillStyle = '#d8d4c4';
+    ctx.fillStyle = '#d0ccc0';
     ctx.fillRect(cx+5, dy+4, 2, 12);
     ctx.fillRect(cx-7, dy+14, 14, 2);
+    // 頭の明るい部分
+    ctx.fillStyle = '#f8f5ec';
+    ctx.fillRect(cx-4, dy+5, 8, 6);
 
-    // 耳（垂れ耳）
-    ctx.fillStyle = '#e8e4d8';
-    ctx.fillRect(cx-10, dy+2, 6, 10);
-    ctx.fillRect(cx+4,  dy+2, 6, 10);
+    // ===== 耳（垂れ耳） =====
+    ctx.fillStyle = '#e6e2d6';
+    ctx.fillRect(cx-11, dy+2, 6, 12);
+    ctx.fillRect(cx+5, dy+2, 6, 12);
+    // 耳先の丸み
+    ctx.fillStyle = '#04040c';
+    ctx.fillRect(cx-11, dy+2, 1, 1);
+    ctx.fillRect(cx+10, dy+2, 1, 1);
     // 耳の内側（ピンク）
-    ctx.fillStyle = '#e890a0';
-    ctx.fillRect(cx-9, dy+3, 4, 7);
-    ctx.fillRect(cx+5, dy+3, 4, 7);
-    // 耳の縁
-    ctx.fillStyle = '#c8c0b0';
-    ctx.fillRect(cx-10, dy+10, 6, 2);
-    ctx.fillRect(cx+4,  dy+10, 6, 2);
+    ctx.fillStyle = '#e898aa';
+    ctx.fillRect(cx-10, dy+3, 4, 8);
+    ctx.fillRect(cx+6, dy+3, 4, 8);
+    ctx.fillStyle = '#f0b0c0';
+    ctx.fillRect(cx-9, dy+4, 2, 5);
+    ctx.fillRect(cx+7, dy+4, 2, 5);
+    // 耳の縁陰影
+    ctx.fillStyle = '#c0bcb0';
+    ctx.fillRect(cx-11, dy+12, 6, 2);
+    ctx.fillRect(cx+5, dy+12, 6, 2);
 
-    // 目
+    // ===== 目（大きく可愛く） =====
+    // 目の白目
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx-5, dy+7, 4, 4);
+    ctx.fillRect(cx+1, dy+7, 4, 4);
+    // 瞳
     ctx.fillStyle = '#100818';
     ctx.fillRect(cx-4, dy+8, 3, 3);
     ctx.fillRect(cx+1, dy+8, 3, 3);
-    // 目の光（2段階）
+    // 虹彩（茶色）
+    ctx.fillStyle = '#602010';
+    ctx.fillRect(cx-4, dy+8, 2, 2);
+    ctx.fillRect(cx+2, dy+8, 2, 2);
+    // 目の光（大きめ）
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx-3, dy+8, 1, 1);
-    ctx.fillRect(cx+2, dy+8, 1, 1);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillRect(cx-4, dy+9, 1, 1);
-    ctx.fillRect(cx+1, dy+9, 1, 1);
+    ctx.fillRect(cx-4, dy+8, 2, 2);
+    ctx.fillRect(cx+2, dy+8, 2, 2);
+    // 目の光（小）
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillRect(cx-3, dy+10, 1, 1);
+    ctx.fillRect(cx+3, dy+10, 1, 1);
 
-    // 鼻（小さなハート型風）
-    ctx.fillStyle = '#c05878';
-    ctx.fillRect(cx-1, dy+12, 2, 2);
-    ctx.fillStyle = '#d87898';
-    ctx.fillRect(cx-1, dy+12, 1, 1);
+    // ===== 鼻（ハート型風） =====
+    ctx.fillStyle = '#c06080';
+    ctx.fillRect(cx-2, dy+12, 4, 2);
+    ctx.fillRect(cx-1, dy+11, 2, 1);
+    ctx.fillStyle = '#e080a0';
+    ctx.fillRect(cx-2, dy+12, 1, 1);
+    ctx.fillRect(cx+1, dy+12, 1, 1);
 
-    // 口
-    ctx.fillStyle = '#a04060';
-    ctx.fillRect(cx-2, dy+14, 1, 1);
-    ctx.fillRect(cx+1, dy+14, 1, 1);
+    // ===== 口 =====
+    ctx.fillStyle = '#905060';
+    ctx.fillRect(cx-1, dy+14, 1, 1);
+    ctx.fillRect(cx+0, dy+14, 1, 1);
+    // ひげ（ウィスカー）
+    ctx.fillStyle = 'rgba(200,190,180,0.8)';
+    ctx.fillRect(cx-11, dy+12, 4, 1);
+    ctx.fillRect(cx+7, dy+12, 4, 1);
+    ctx.fillRect(cx-11, dy+13, 3, 1);
+    ctx.fillRect(cx+8, dy+13, 3, 1);
   }
 }
