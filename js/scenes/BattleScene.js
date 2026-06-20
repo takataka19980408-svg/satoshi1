@@ -421,51 +421,219 @@ export class BattleScene extends Scene {
 
     switch (id) {
       case 'forest_slime': {
-        // 緑のスライム
-        const blink = 0.8 + 0.2 * Math.sin(this._blinkTimer * 3);
-        ctx.fillStyle = `rgba(40, ${Math.floor(150 * blink)}, 40, 1)`;
-        ctx.fillRect(x+16, y+24, 48, 36);
-        ctx.fillRect(x+20, y+16, 40, 14);
-        ctx.fillRect(x+26, y+10, 28, 10);
+        // モリプニ — 丸くてぷよぷよした緑スライム
+        const b = 0.85 + 0.15 * Math.sin(this._blinkTimer * 3);
+        const cx2 = x + 40, cy2 = y + 38;
+        // 体（楕円形に見せる多段描画）
+        ctx.fillStyle = `rgba(28,${Math.floor(130*b)},28,1)`;
+        ctx.fillRect(cx2-28, cy2-22, 56, 30);
+        ctx.fillRect(cx2-22, cy2-30, 44, 16);
+        ctx.fillRect(cx2-14, cy2-36, 28, 10);
+        // ハイライト（体の上部）
+        ctx.fillStyle = `rgba(48,${Math.floor(190*b)},48,1)`;
+        ctx.fillRect(cx2-20, cy2-28, 32, 8);
+        ctx.fillRect(cx2-12, cy2-34, 18, 6);
+        // つや（光沢）
+        ctx.fillStyle = 'rgba(120,220,120,0.5)';
+        ctx.fillRect(cx2-12, cy2-30, 10, 6);
+        ctx.fillStyle = 'rgba(200,255,200,0.4)';
+        ctx.fillRect(cx2-8, cy2-28, 5, 3);
+        // 触角
         ctx.fillStyle = '#1a5520';
-        ctx.fillRect(x+20, y+28, 10, 10);
-        ctx.fillRect(x+50, y+28, 10, 10);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x+24, y+28, 6, 6);
-        ctx.fillRect(x+50, y+28, 6, 6);
+        ctx.fillRect(cx2-10, cy2-38, 3, 6);
+        ctx.fillRect(cx2+7,  cy2-38, 3, 6);
+        ctx.fillRect(cx2-12, cy2-40, 5, 3);
+        ctx.fillRect(cx2+6,  cy2-40, 5, 3);
+        // 目
+        ctx.fillStyle = '#0a1808';
+        ctx.fillRect(cx2-12, cy2-20, 8, 8);
+        ctx.fillRect(cx2+4,  cy2-20, 8, 8);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(cx2-11, cy2-20, 3, 3);
+        ctx.fillRect(cx2+5,  cy2-20, 3, 3);
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.fillRect(cx2-9,  cy2-18, 2, 2);
+        ctx.fillRect(cx2+7,  cy2-18, 2, 2);
+        // 口
+        ctx.fillStyle = '#0a2808';
+        ctx.fillRect(cx2-6, cy2-10, 12, 3);
+        ctx.fillStyle = '#1a4812';
+        ctx.fillRect(cx2-4, cy2-9, 8, 1);
+        // 底面の影
+        ctx.fillStyle = 'rgba(0,40,0,0.4)';
+        ctx.fillRect(cx2-26, cy2+6, 52, 4);
+        break;
+      }
+      case 'dark_moth': {
+        // ヤミコガネ — 闇の蛾
+        const bf = 0.7 + 0.3 * Math.sin(this._blinkTimer * 6);
+        const cx3 = x + 40, cy3 = y + 36;
+        // 羽（広げた状態、左右対称）
+        // 上羽
+        ctx.fillStyle = `rgba(${Math.floor(40*bf)},${Math.floor(30*bf)},${Math.floor(70*bf)},0.9)`;
+        ctx.fillRect(cx3-36, cy3-30, 28, 22);
+        ctx.fillRect(cx3+8,  cy3-30, 28, 22);
+        ctx.fillRect(cx3-42, cy3-18, 10, 14);
+        ctx.fillRect(cx3+32, cy3-18, 10, 14);
+        // 下羽
+        ctx.fillStyle = `rgba(${Math.floor(50*bf)},${Math.floor(38*bf)},${Math.floor(85*bf)},0.9)`;
+        ctx.fillRect(cx3-28, cy3-10, 22, 18);
+        ctx.fillRect(cx3+6,  cy3-10, 22, 18);
+        // 羽の模様（光る紋様）
+        ctx.fillStyle = `rgba(140,80,220,${0.4 * bf})`;
+        ctx.fillRect(cx3-30, cy3-26, 10, 6);
+        ctx.fillRect(cx3+20, cy3-26, 10, 6);
+        ctx.fillStyle = `rgba(180,100,255,${0.3 * bf})`;
+        ctx.fillRect(cx3-26, cy3-22, 5, 3);
+        ctx.fillRect(cx3+21, cy3-22, 5, 3);
+        // 羽の縁取り（暗い）
+        ctx.fillStyle = '#180c28';
+        ctx.fillRect(cx3-36, cy3-30, 2, 22);
+        ctx.fillRect(cx3+34, cy3-30, 2, 22);
+        // 胴体
+        ctx.fillStyle = '#2a1840';
+        ctx.fillRect(cx3-6, cy3-32, 12, 30);
+        ctx.fillStyle = '#3e2860';
+        ctx.fillRect(cx3-4, cy3-30, 8, 26);
+        // 体の節（縞）
+        ctx.fillStyle = '#1a1030';
+        ctx.fillRect(cx3-4, cy3-22, 8, 2);
+        ctx.fillRect(cx3-4, cy3-14, 8, 2);
+        ctx.fillRect(cx3-4, cy3-6,  8, 2);
+        // 頭
+        ctx.fillStyle = '#1e1030';
+        ctx.fillRect(cx3-5, cy3-36, 10, 8);
+        // 複眼
+        ctx.fillStyle = '#c03060';
+        ctx.fillRect(cx3-5, cy3-35, 4, 4);
+        ctx.fillRect(cx3+1, cy3-35, 4, 4);
+        ctx.fillStyle = '#ff60a0';
+        ctx.fillRect(cx3-4, cy3-35, 2, 2);
+        ctx.fillRect(cx3+2, cy3-35, 2, 2);
+        // 触角
+        ctx.fillStyle = '#3a2050';
+        ctx.fillRect(cx3-4, cy3-44, 2, 10);
+        ctx.fillRect(cx3+2, cy3-44, 2, 10);
+        ctx.fillRect(cx3-7, cy3-46, 5, 3);
+        ctx.fillRect(cx3+2, cy3-46, 5, 3);
+        break;
+      }
+      case 'stone_imp': {
+        // イシカゲ — 石の精
+        const bs = 0.9 + 0.1 * Math.sin(this._blinkTimer * 1.5);
+        const cx4 = x + 40, cy4 = y + 44;
+        // 影
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(cx4-20, cy4+2, 40, 5);
+        // 体（岩のような不規則な形）
+        ctx.fillStyle = '#4a4860';
+        ctx.fillRect(cx4-18, cy4-36, 36, 38);
+        ctx.fillRect(cx4-22, cy4-28, 44, 24);
+        ctx.fillRect(cx4-14, cy4-42, 28, 10);
+        // 石の陰影（暗い部分）
+        ctx.fillStyle = '#28263a';
+        ctx.fillRect(cx4+14, cy4-36, 6, 38);
+        ctx.fillRect(cx4-22, cy4-10, 44, 8);
+        // 石の明るい部分（ハイライト）
+        ctx.fillStyle = '#6a68a0';
+        ctx.fillRect(cx4-14, cy4-40, 16, 8);
+        ctx.fillRect(cx4-18, cy4-32, 12, 10);
+        // 石の模様（亀裂）
+        ctx.fillStyle = '#1a1828';
+        ctx.fillRect(cx4-4, cy4-36, 2, 16);
+        ctx.fillRect(cx4+6, cy4-28, 2, 20);
+        ctx.fillRect(cx4-12, cy4-20, 14, 2);
+        // 光る目（石の精の証）
+        const eyeGlow = 0.8 + 0.2 * Math.sin(this._blinkTimer * 2);
+        ctx.fillStyle = `rgba(180,220,255,${eyeGlow})`;
+        ctx.fillRect(cx4-10, cy4-26, 8, 8);
+        ctx.fillRect(cx4+2,  cy4-26, 8, 8);
+        ctx.fillStyle = `rgba(220,240,255,${eyeGlow})`;
+        ctx.fillRect(cx4-8,  cy4-25, 4, 4);
+        ctx.fillRect(cx4+4,  cy4-25, 4, 4);
+        // 口（岩の割れ目）
+        ctx.fillStyle = '#0e0c18';
+        ctx.fillRect(cx4-8, cy4-12, 16, 4);
+        ctx.fillStyle = '#28263a';
+        ctx.fillRect(cx4-6, cy4-11, 12, 2);
+        // 腕（岩の突起）
+        ctx.fillStyle = '#4a4860';
+        ctx.fillRect(cx4-30, cy4-24, 14, 10);
+        ctx.fillRect(cx4+16, cy4-24, 14, 10);
+        ctx.fillStyle = '#28263a';
+        ctx.fillRect(cx4-18, cy4-22, 2, 8);
+        ctx.fillRect(cx4+28, cy4-22, 2, 8);
         break;
       }
       case 'puni_king': {
-        // ボス：大型のプニキング
-        const blink2 = 0.8 + 0.2 * Math.sin(this._blinkTimer * 2);
-        ctx.fillStyle = `rgba(${Math.floor(120*blink2)}, 30, ${Math.floor(180*blink2)}, 1)`;
-        ctx.fillRect(x+4,  y+20, 72, 50);
-        ctx.fillRect(x+10, y+8,  60, 20);
-        ctx.fillRect(x+20, y+2,  40, 12);
+        // 暴走プニキング — 大型ボス
+        const bk = 0.85 + 0.15 * Math.sin(this._blinkTimer * 2);
+        const cx5 = x + 40, cy5 = y + 38;
+        // 体（巨大）
+        ctx.fillStyle = `rgba(${Math.floor(110*bk)},18,${Math.floor(160*bk)},1)`;
+        ctx.fillRect(cx5-36, cy5-26, 72, 42);
+        ctx.fillRect(cx5-28, cy5-40, 56, 20);
+        ctx.fillRect(cx5-18, cy5-48, 36, 14);
+        // ハイライト
+        ctx.fillStyle = `rgba(${Math.floor(160*bk)},28,${Math.floor(220*bk)},1)`;
+        ctx.fillRect(cx5-22, cy5-38, 28, 10);
+        ctx.fillRect(cx5-14, cy5-46, 18, 8);
+        // つや
+        ctx.fillStyle = `rgba(200,100,255,${0.35*bk})`;
+        ctx.fillRect(cx5-10, cy5-42, 8, 6);
         // 王冠
-        ctx.fillStyle = '#e0c020';
-        ctx.fillRect(x+16, y-4, 48, 10);
-        ctx.fillRect(x+14, y-12, 8, 10);
-        ctx.fillRect(x+36, y-14, 8, 12);
-        ctx.fillRect(x+58, y-12, 8, 10);
-        // 目（光る）
-        ctx.fillStyle = '#ff4488';
-        ctx.fillRect(x+22, y+22, 12, 12);
-        ctx.fillRect(x+46, y+22, 12, 12);
-        ctx.fillStyle = '#ffaacc';
-        ctx.fillRect(x+24, y+24, 4, 4);
-        ctx.fillRect(x+48, y+24, 4, 4);
+        ctx.fillStyle = '#d4b010';
+        ctx.fillRect(cx5-22, cy5-54, 44, 10);
+        ctx.fillStyle = '#f0cc20';
+        ctx.fillRect(cx5-20, cy5-54, 40, 5);
+        // 王冠の突起（3本）
+        ctx.fillStyle = '#d4b010';
+        ctx.fillRect(cx5-22, cy5-64, 10, 12);
+        ctx.fillRect(cx5-5,  cy5-68, 10, 14);
+        ctx.fillRect(cx5+12, cy5-64, 10, 12);
+        // 突起の宝石
+        ctx.fillStyle = '#ff2060';
+        ctx.fillRect(cx5-20, cy5-66, 6, 6);
+        ctx.fillRect(cx5-3,  cy5-70, 6, 6);
+        ctx.fillRect(cx5+14, cy5-66, 6, 6);
+        ctx.fillStyle = '#ff80a0';
+        ctx.fillRect(cx5-19, cy5-65, 3, 3);
+        ctx.fillRect(cx5-2,  cy5-69, 3, 3);
+        ctx.fillRect(cx5+15, cy5-65, 3, 3);
+        // 目（狂った光）
+        const eg = 0.8 + 0.2 * Math.sin(this._blinkTimer * 8);
+        ctx.fillStyle = `rgba(255,20,80,${eg})`;
+        ctx.fillRect(cx5-18, cy5-22, 14, 14);
+        ctx.fillRect(cx5+4,  cy5-22, 14, 14);
+        ctx.fillStyle = `rgba(255,120,160,${eg})`;
+        ctx.fillRect(cx5-15, cy5-20, 6, 6);
+        ctx.fillRect(cx5+7,  cy5-20, 6, 6);
+        ctx.fillStyle = `rgba(255,220,240,${eg * 0.8})`;
+        ctx.fillRect(cx5-13, cy5-19, 2, 2);
+        ctx.fillRect(cx5+9,  cy5-19, 2, 2);
+        // 口（ニタリ）
+        ctx.fillStyle = '#200818';
+        ctx.fillRect(cx5-16, cy5-4, 32, 6);
+        ctx.fillStyle = '#f0a000';
+        // 歯
+        for (let t = 0; t < 4; t++) {
+          ctx.fillRect(cx5-14+t*8, cy5-4, 4, 5);
+        }
         break;
       }
       default: {
         // 汎用敵
-        ctx.fillStyle = '#884422';
-        ctx.fillRect(x+20, y+10, 40, 50);
-        ctx.fillStyle = '#aa6644';
-        ctx.fillRect(x+24, y+14, 32, 40);
-        ctx.fillStyle = '#000';
-        ctx.fillRect(x+28, y+22, 8, 8);
-        ctx.fillRect(x+44, y+22, 8, 8);
+        const cxD = x + 40, cyD = y + 40;
+        ctx.fillStyle = '#7a3818';
+        ctx.fillRect(cxD-20, cyD-30, 40, 36);
+        ctx.fillStyle = '#9a5230';
+        ctx.fillRect(cxD-16, cyD-26, 32, 28);
+        ctx.fillStyle = '#0a0808';
+        ctx.fillRect(cxD-10, cyD-18, 7, 7);
+        ctx.fillRect(cxD+3,  cyD-18, 7, 7);
+        ctx.fillStyle = '#ff3020';
+        ctx.fillRect(cxD-8, cyD-16, 4, 4);
+        ctx.fillRect(cxD+5, cyD-16, 4, 4);
       }
     }
     ctx.globalAlpha = 1;

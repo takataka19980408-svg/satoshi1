@@ -1,21 +1,21 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, CANVAS_H, COLORS } from '../constants.js';
+import { CANVAS_W, CANVAS_H, COLORS, DPAD, BTNS } from '../constants.js';
 
 export class TitleScene extends Scene {
   constructor(game) {
     super(game);
-    this._cursor = 0; // 0=ニューゲーム, 1=つづきから
+    this._cursor = 0;
     this._blinkTimer = 0;
     this._starTimer  = 0;
     this._stars = this._genStars();
-    this._phase = 'title'; // 'title' | 'confirm_new'
     this._inputLock = false;
+    this._tapHandler = null;
   }
 
   _genStars() {
     return Array.from({ length: 80 }, () => ({
       x: Math.random() * CANVAS_W,
-      y: Math.random() * CANVAS_H * 0.6,
+      y: Math.random() * CANVAS_H * 0.65,
       size: Math.random() * 1.5 + 0.5,
       spd: Math.random() * 0.3 + 0.05,
       phase: Math.random() * Math.PI * 2,
@@ -27,6 +27,46 @@ export class TitleScene extends Scene {
     this._cursor = 0;
     this._inputLock = false;
     this._hasSave = this.game.save.hasSave();
+
+    // メニュー項目を直接タップできるようにする
+    this._tapHandler = (e) => {
+      if (e.type === 'touchstart') e.preventDefault();
+      const src = e.changedTouches ? e.changedTouches[0] : e;
+      const rect = this.game.canvas.getBoundingClientRect();
+      const lx = (src.clientX - rect.left) / this.game.scale;
+      const ly = (src.clientY - rect.top)  / this.game.scale;
+      this._handleTap(lx, ly);
+    };
+    this.game.canvas.addEventListener('touchstart', this._tapHandler, { passive: false });
+    this.game.canvas.addEventListener('mousedown',  this._tapHandler);
+  }
+
+  exit() {
+    if (this._tapHandler) {
+      this.game.canvas.removeEventListener('touchstart', this._tapHandler);
+      this.game.canvas.removeEventListener('mousedown',  this._tapHandler);
+      this._tapHandler = null;
+    }
+  }
+
+  // メニュー項目 or Aボタン領域のタップを処理
+  _handleTap(lx, ly) {
+    if (this._inputLock) return;
+    const mx = CANVAS_W / 2;
+    const my = 320;
+    for (let i = 0; i < 2; i++) {
+      const ty = my + i * 36;
+      if (ly >= ty - 20 && ly <= ty + 16 && lx >= mx - 90 && lx <= mx + 90) {
+        const dim = i === 1 && !this._hasSave;
+        if (!dim) {
+          this._cursor = i;
+          this.game.audio.playSfx('cursor');
+          if (i === 0) this._startNewGame();
+          else this._loadGame();
+        }
+        return;
+      }
+    }
   }
 
   update(dt) {
@@ -51,14 +91,17 @@ export class TitleScene extends Scene {
   _startNewGame() {
     this.game.audio.playSfx('confirm');
     this._inputLock = true;
-    // 画面フェードアウト後に遷移
     setTimeout(() => {
       this.game.state = {
         chapter: 1, flags: {}, party: [], monsters: [], inventory: [],
         currentMap: 'satoshi_house', playerX: 6, playerY: 7, playerDir: 'down',
       };
       const partyData = this.game.loader.get('data/characters/party.json');
-      this.game.state.party = [JSON.parse(JSON.stringify(partyData.satoshi))];
+      const satoshi = partyData?.satoshi ?? this.game._fallbackSatoshi?.() ?? {
+        id: 'satoshi', name: 'サトシ', level: 1, exp: 0,
+        hp: 40, maxHp: 40, mp: 10, maxMp: 10, atk: 10, def: 7, spd: 8, skills: [],
+      };
+      this.game.state.party = [JSON.parse(JSON.stringify(satoshi))];
       this.game.changeScene('world', {
         map: 'satoshi_house', x: 6, y: 7, dir: 'down',
         firstEvent: 'house_start',
@@ -80,10 +123,11 @@ export class TitleScene extends Scene {
   }
 
   render(ctx) {
-    // 空背景
+    // 背景グラデーション
     const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-    grad.addColorStop(0, '#04041a');
-    grad.addColorStop(1, '#0a0820');
+    grad.addColorStop(0, '#02021a');
+    grad.addColorStop(0.6, '#0a0820');
+    grad.addColorStop(1, '#060418');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
@@ -101,64 +145,93 @@ export class TitleScene extends Scene {
 
     // タイトルロゴ
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#304878';
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText('サトシと', CANVAS_W / 2, 210);
-    ctx.fillText('奇妙な石', CANVAS_W / 2, 246);
+    // 影
+    ctx.fillStyle = '#0a1838';
+    ctx.font = 'bold 30px monospace';
+    ctx.fillText('サトシと', CANVAS_W / 2 + 2, 214);
+    ctx.fillText('奇妙な石', CANVAS_W / 2 + 2, 252);
+    // 本体
     ctx.fillStyle = '#7ab8ff';
-    ctx.font = 'bold 28px monospace';
-    ctx.fillText('サトシと', CANVAS_W / 2, 208);
-    ctx.fillText('奇妙な石', CANVAS_W / 2, 244);
+    ctx.font = 'bold 30px monospace';
+    ctx.fillText('サトシと', CANVAS_W / 2, 212);
+    ctx.fillText('奇妙な石', CANVAS_W / 2, 250);
 
     // サブタイトル
     ctx.fillStyle = '#405888';
     ctx.font = '11px monospace';
-    ctx.fillText('Chapter I  星の落ちた森', CANVAS_W / 2, 270);
+    ctx.fillText('Chapter I  星の落ちた森', CANVAS_W / 2, 274);
 
     // メニュー
     this._drawMenu(ctx);
 
+    // コントローラ
+    this._drawController(ctx);
+
     // バージョン
-    ctx.fillStyle = '#304060';
+    ctx.fillStyle = '#253050';
     ctx.font = '10px monospace';
-    ctx.fillText('ver 0.1.0', CANVAS_W / 2, CANVAS_H - 20);
+    ctx.fillText('ver 0.1.0', CANVAS_W / 2, CANVAS_H - 8);
   }
 
   _drawTitleStone(ctx) {
     const cx = CANVAS_W / 2;
-    const cy = 130;
+    const cy = 128;
     const t  = this._starTimer;
 
-    // 光のオーラ
-    for (let r = 50; r > 0; r -= 10) {
-      const alpha = (0.05 + 0.05 * Math.sin(t * 1.5)) * (50 - r) / 50;
+    // 外周オーラ（グロー効果）
+    for (let r = 44; r > 0; r -= 8) {
+      const alpha = (0.04 + 0.03 * Math.sin(t * 1.8)) * (44 - r) / 44;
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = '#7ab8ff';
+      ctx.fillStyle = '#5090ee';
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
 
-    // 石本体
-    ctx.fillStyle = '#203060';
-    ctx.fillRect(cx - 16, cy - 12, 32, 26);
-    ctx.fillStyle = '#3050a0';
-    ctx.fillRect(cx - 14, cy - 10, 28, 22);
-    ctx.fillStyle = '#5080d0';
-    ctx.fillRect(cx - 10, cy - 8, 20, 16);
+    const pulse = 0.7 + 0.3 * Math.sin(t * 2.4);
+
+    // 石の影（立体感）
+    ctx.fillStyle = '#111830';
+    ctx.fillRect(cx - 15, cy - 10, 32, 24);
+
+    // 石本体（3層）
+    ctx.globalAlpha = 0.9 + 0.1 * pulse;
+    ctx.fillStyle = '#1e3060';
+    ctx.fillRect(cx - 14, cy - 12, 28, 22);
+    ctx.fillStyle = '#3060b0';
+    ctx.fillRect(cx - 12, cy - 10, 24, 18);
+    ctx.fillStyle = '#5090e0';
+    ctx.fillRect(cx - 8,  cy - 7,  16, 12);
+    // コア
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#90c8ff';
+    ctx.fillRect(cx - 4,  cy - 3,  8, 6);
+    ctx.fillStyle = '#d0e8ff';
+    ctx.fillRect(cx - 2,  cy - 1,  4, 3);
+
     // 光の反射
-    ctx.fillStyle = 'rgba(180, 220, 255, 0.6)';
-    ctx.fillRect(cx - 8, cy - 6, 8, 6);
-    // 点滅する核
-    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 3);
-    ctx.fillStyle = '#aaddff';
-    ctx.fillRect(cx - 4, cy - 4, 8, 8);
+    ctx.globalAlpha = 0.6;
+    ctx.fillStyle = '#e0f4ff';
+    ctx.fillRect(cx - 10, cy - 8, 6, 4);
+    ctx.globalAlpha = 1;
+
+    // 浮遊する光の粒
+    for (let i = 0; i < 5; i++) {
+      const angle = t * 0.8 + (i * Math.PI * 2 / 5);
+      const r = 22 + 6 * Math.sin(t * 1.2 + i);
+      const px = cx + Math.cos(angle) * r;
+      const py = cy + Math.sin(angle) * r * 0.5;
+      const a = 0.4 + 0.4 * Math.sin(t * 2 + i * 1.2);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#90c8ff';
+      ctx.fillRect(px, py, 2, 2);
+    }
     ctx.globalAlpha = 1;
   }
 
   _drawMenu(ctx) {
-    const items = ['ニューゲーム', this._hasSave ? 'つづきから' : 'つづきから'];
+    const items = ['ニューゲーム', 'つづきから'];
     const mx = CANVAS_W / 2;
     const my = 320;
 
@@ -168,22 +241,83 @@ export class TitleScene extends Scene {
       const active = i === this._cursor;
       const dim    = i === 1 && !this._hasSave;
 
+      // 選択ハイライト
       if (active && !dim) {
-        ctx.fillStyle = 'rgba(40, 60, 120, 0.7)';
-        ctx.fillRect(mx - 80, y - 18, 160, 28);
+        ctx.fillStyle = 'rgba(30, 50, 100, 0.75)';
+        ctx.fillRect(mx - 88, y - 19, 176, 30);
         ctx.strokeStyle = COLORS.border;
         ctx.lineWidth = 1;
-        ctx.strokeRect(mx - 80, y - 18, 160, 28);
-        ctx.fillStyle = COLORS.accent;
-        ctx.font = 'bold 15px monospace';
-        const blink = 0.7 + 0.3 * Math.sin(this._blinkTimer * 5);
+        ctx.strokeRect(mx - 88, y - 19, 176, 30);
+      }
+
+      // カーソル
+      if (active && !dim) {
+        const blink = 0.6 + 0.4 * Math.sin(this._blinkTimer * 5);
         ctx.globalAlpha = blink;
-        ctx.fillText('▶', mx - 66, y);
+        ctx.fillStyle = COLORS.accent;
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText('▶', mx - 72, y + 1);
         ctx.globalAlpha = 1;
       }
-      ctx.fillStyle = dim ? '#303050' : (active ? COLORS.accent : COLORS.text);
-      ctx.font = `${active ? 'bold ' : ''}15px monospace`;
-      ctx.fillText(item, mx + 8, y);
+
+      ctx.fillStyle = dim ? '#2a2a48' : (active ? COLORS.accent : '#90a8d8');
+      ctx.font = `${active && !dim ? 'bold ' : ''}15px monospace`;
+      ctx.fillText(item, mx + 8, y + 1);
     });
+
+    // ヒントテキスト
+    ctx.fillStyle = '#304060';
+    ctx.font = '10px monospace';
+    ctx.fillText('↑↓ で選ぶ  A / タップ で決定', mx, my + 76);
+  }
+
+  _drawController(ctx) {
+    // 下部コントローラエリアを薄く描画
+    ctx.fillStyle = 'rgba(4, 5, 16, 0.7)';
+    ctx.fillRect(0, 480, CANVAS_W, 160);
+    ctx.strokeStyle = '#101828';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 480, CANVAS_W, 1);
+
+    // Dパッド（シンプル版）
+    const dirs = [
+      { key: 'up',    lbl: '↑', ...DPAD.up    },
+      { key: 'down',  lbl: '↓', ...DPAD.down  },
+      { key: 'left',  lbl: '←', ...DPAD.left  },
+      { key: 'right', lbl: '→', ...DPAD.right },
+    ];
+    const s = DPAD.size;
+    for (const d of dirs) {
+      const held = this.game.input.isDown(d.key);
+      ctx.fillStyle   = held ? '#304070' : '#0e1020';
+      ctx.strokeStyle = '#1e2840';
+      ctx.lineWidth   = 1;
+      ctx.fillRect(d.x - s/2, d.y - s/2, s, s);
+      ctx.strokeRect(d.x - s/2, d.y - s/2, s, s);
+      ctx.fillStyle = held ? COLORS.accent : '#405070';
+      ctx.font      = '16px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(d.lbl, d.x, d.y + 6);
+    }
+
+    // アクションボタン
+    const btns = [
+      { key: 'a', lbl: 'A', ...BTNS.a },
+      { key: 'b', lbl: 'B', ...BTNS.b },
+    ];
+    for (const b of btns) {
+      const held = this.game.input.isDown(b.key);
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle   = held ? '#304070' : '#0e1020';
+      ctx.fill();
+      ctx.strokeStyle = '#1e2840';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+      ctx.fillStyle = held ? COLORS.accent : '#405070';
+      ctx.font      = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(b.lbl, b.x, b.y + 5);
+    }
   }
 }
