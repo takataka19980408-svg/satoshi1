@@ -38,6 +38,8 @@ export class BattleScene extends Scene {
     this._enemyHp   = 0;
     this._enemyShake= 0;
     this._skillMenu = false;
+    this._flashTimer = 0;
+    this._flashColor = '#ffffff';
     this._tapHandler = null;
   }
 
@@ -73,6 +75,8 @@ export class BattleScene extends Scene {
     this._enemyHp   = raw.hp;
     this._enemyShake= 0;
     this._shake     = 0;
+    this._flashTimer = 0;
+    this._flashColor = '#ffffff';
 
     const bgm = isBoss ? 'boss' : 'battle';
     this.game.audio.playBgm(bgm);
@@ -120,12 +124,10 @@ export class BattleScene extends Scene {
 
     // コマンドメニュー タップ選択
     if (this._state === ST.SELECT_CMD) {
-      const cw = 330, ch = 100;
-      const cx = CANVAS_W / 2 - cw / 2;
-      const my = 400;
-      if (lx >= cx && lx <= cx + cw && ly >= my && ly <= my + ch) {
-        const col = lx >= cx + cw / 2 ? 1 : 0;
-        const row = ly >= my + ch / 2  ? 1 : 0;
+      const bx = 8, by = 390, bw = 344, bh = 176;
+      if (lx >= bx && lx <= bx + bw && ly >= by && ly <= by + bh) {
+        const col = lx >= bx + bw / 2 ? 1 : 0;
+        const row = ly >= by + bh / 2  ? 1 : 0;
         this._cursor = row * 2 + col;
         this.game.audio.playSfx('confirm');
         switch (this._cursor) {
@@ -165,6 +167,7 @@ export class BattleScene extends Scene {
     this._blinkTimer += dt;
     if (this._enemyShake > 0) this._enemyShake -= dt * 10;
     if (this._shake > 0)      this._shake      -= dt * 10;
+    if (this._flashTimer > 0) this._flashTimer -= dt;
 
     // メッセージキュー処理
     if (this._msgTimer > 0) {
@@ -246,11 +249,34 @@ export class BattleScene extends Scene {
     const dmg = this.sys.calcDamageSimple(attacker.atk, this._enemy.def);
     this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
     this._enemyShake = 0.3;
+    this._flashTimer = 0.18;
+    this._flashColor = '#ffffff';
     this.game.audio.playSfx('hit');
     this._pushMsg(`サトシの攻撃！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
       if (this._enemy.hp <= 0) this._winBattle();
-      else this._doEnemyAction();
+      else this._doCompanionAttacks(() => this._doEnemyAction());
     });
+  }
+
+  _doCompanionAttacks(onDone) {
+    const companions = this._party.slice(1).filter(c => c.hp > 0);
+    let idx = 0;
+    const next = () => {
+      if (idx >= companions.length || this._enemy.hp <= 0) {
+        if (this._enemy.hp <= 0) this._winBattle();
+        else onDone();
+        return;
+      }
+      const comp = companions[idx++];
+      const dmg = this.sys.calcDamageSimple(comp.atk || 5, this._enemy.def);
+      this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
+      this._enemyShake = 0.3;
+      this._flashTimer = 0.14;
+      this._flashColor = '#aaffaa';
+      this.game.audio.playSfx('hit');
+      this._pushMsg(`${comp.name}のこうげき！\n${this._enemy.name}に${dmg}のダメージ！`, next);
+    };
+    next();
   }
 
   _openSkillMenu() {
@@ -284,7 +310,7 @@ export class BattleScene extends Scene {
     this._state = ST.SELECT_CMD;
     this._pushMsg(`${skillData.name}！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
       if (this._enemy.hp <= 0) this._winBattle();
-      else this._doEnemyAction();
+      else this._doCompanionAttacks(() => this._doEnemyAction());
     });
   }
 
@@ -330,6 +356,8 @@ export class BattleScene extends Scene {
     const dmg    = this.sys.calcDamageSimple(this._enemy.atk, target.def);
     target.hp    = Math.max(0, target.hp - dmg);
     this._shake  = 0.3;
+    this._flashTimer = 0.2;
+    this._flashColor = '#ff2020';
     this.game.audio.playSfx('damage');
     // game stateに反映
     const stateParty = [...this.game.state.party, ...this.game.state.monsters];
@@ -434,6 +462,14 @@ export class BattleScene extends Scene {
     // WIN/LOSE
     if (this._state === ST.WIN)  this._drawWinScreen(ctx);
     if (this._state === ST.LOSE) this._drawLoseScreen(ctx);
+
+    // アタックフラッシュ
+    if (this._flashTimer > 0) {
+      ctx.globalAlpha = Math.min(0.55, this._flashTimer * 3.5);
+      ctx.fillStyle = this._flashColor;
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.globalAlpha = 1;
+    }
   }
 
   _drawBattleBg(ctx) {
@@ -741,34 +777,36 @@ export class BattleScene extends Scene {
   }
 
   _drawCommandMenu(ctx) {
-    const cmds = ['たたかう', 'スキル', 'アイテム', 'にげる'];
-    const mx = CANVAS_W / 2;
-    const my = 400;
-    const cw = 330, ch = 100;
-    const cx = mx - cw / 2;
+    const cmds  = ['たたかう', 'スキル', 'アイテム', 'にげる'];
+    const bx    = 8, by = 390, bw = 344, bh = 176, gap = 8;
+    const btnW  = (bw - gap) / 2;   // 168
+    const btnH  = (bh - gap) / 2;   // 84
 
-    ctx.fillStyle = 'rgba(8, 10, 28, 0.95)';
-    ctx.fillRect(cx, my, cw, ch);
-    ctx.strokeStyle = COLORS.border;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(cx, my, cw, ch);
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.7)';
+    ctx.fillRect(bx, by, bw, bh);
 
     for (let i = 0; i < 4; i++) {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const tx  = cx + 20 + col * 160;
-      const ty  = my + 28 + row * 36;
-      const sel = i === this._cursor;
+      const col  = i % 2;
+      const row  = Math.floor(i / 2);
+      const bx2  = bx + col * (btnW + gap);
+      const by2  = by + row * (btnH + gap);
+      const sel  = i === this._cursor;
+
+      ctx.fillStyle = sel ? 'rgba(30, 50, 120, 0.95)' : 'rgba(8, 12, 38, 0.92)';
+      ctx.fillRect(bx2, by2, btnW, btnH);
+      ctx.strokeStyle = sel ? COLORS.accent : COLORS.border;
+      ctx.lineWidth = sel ? 2 : 1;
+      ctx.strokeRect(bx2, by2, btnW, btnH);
+
       if (sel) {
-        ctx.fillStyle = COLORS.accent;
-        ctx.font = '12px monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText('▶', tx - 14, ty);
+        ctx.fillStyle = `rgba(122,184,255,0.08)`;
+        ctx.fillRect(bx2 + 2, by2 + 2, btnW - 4, btnH - 4);
       }
+
       ctx.fillStyle = sel ? COLORS.accent : COLORS.text;
-      ctx.font = `${sel ? 'bold ' : ''}14px monospace`;
-      ctx.textAlign = 'left';
-      ctx.fillText(cmds[i], tx, ty);
+      ctx.font = sel ? 'bold 17px monospace' : '16px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(cmds[i], bx2 + btnW / 2, by2 + btnH / 2 + 6);
     }
   }
 
@@ -828,41 +866,67 @@ export class BattleScene extends Scene {
   }
 
   _drawWinScreen(ctx) {
-    ctx.fillStyle = 'rgba(4, 6, 20, 0.7)';
-    ctx.fillRect(0, 390, CANVAS_W, 110);
+    const grad = ctx.createLinearGradient(0, 280, 0, CANVAS_H);
+    grad.addColorStop(0, 'rgba(10, 8, 2, 0)');
+    grad.addColorStop(0.25, 'rgba(10, 8, 2, 0.88)');
+    grad.addColorStop(1, 'rgba(10, 8, 2, 0.97)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 280, CANVAS_W, CANVAS_H - 280);
+
     ctx.strokeStyle = COLORS.gold;
     ctx.lineWidth = 2;
-    ctx.strokeRect(8, 392, CANVAS_W - 16, 106);
-    ctx.fillStyle = COLORS.gold;
-    ctx.font = 'bold 16px monospace';
+    ctx.strokeRect(10, 360, CANVAS_W - 20, 220);
+    ctx.strokeStyle = 'rgba(224,192,96,0.25)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(14, 364, CANVAS_W - 28, 212);
+
+    const pulse = 0.85 + 0.15 * Math.sin(this._blinkTimer * 2.5);
+    ctx.fillStyle = `rgba(224,192,96,${pulse})`;
+    ctx.font = 'bold 22px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('★ しょうり ★', CANVAS_W / 2, 418);
+    ctx.fillText('★  し ょ う り  ★', CANVAS_W / 2, 408);
+
     ctx.fillStyle = COLORS.text;
-    ctx.font = '13px monospace';
-    ctx.fillText(`EXP +${this._expGained}`, CANVAS_W / 2, 444);
-    if (this._goldGained > 0) ctx.fillText(`G +${this._goldGained}`, CANVAS_W / 2, 464);
-    const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
+    ctx.font = '14px monospace';
+    ctx.fillText(`けいけんち  + ${this._expGained}`, CANVAS_W / 2, 450);
+    if (this._goldGained > 0) {
+      ctx.fillStyle = COLORS.gold;
+      ctx.fillText(`G  + ${this._goldGained}`, CANVAS_W / 2, 476);
+    }
+
+    const blink = 0.45 + 0.55 * Math.sin(this._blinkTimer * 4);
     ctx.globalAlpha = blink;
     ctx.fillStyle = COLORS.accent;
-    ctx.fillText('タップでつづける', CANVAS_W / 2, 490);
+    ctx.font = '14px monospace';
+    ctx.fillText('タップでつづける', CANVAS_W / 2, 548);
     ctx.globalAlpha = 1;
   }
 
   _drawLoseScreen(ctx) {
-    ctx.fillStyle = 'rgba(20, 4, 4, 0.8)';
-    ctx.fillRect(0, 390, CANVAS_W, 110);
-    ctx.strokeStyle = '#aa2222';
+    const grad = ctx.createLinearGradient(0, 280, 0, CANVAS_H);
+    grad.addColorStop(0, 'rgba(20, 2, 2, 0)');
+    grad.addColorStop(0.25, 'rgba(20, 2, 2, 0.9)');
+    grad.addColorStop(1, 'rgba(20, 2, 2, 0.97)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 280, CANVAS_W, CANVAS_H - 280);
+
+    ctx.strokeStyle = '#882222';
     ctx.lineWidth = 2;
-    ctx.strokeRect(8, 392, CANVAS_W - 16, 106);
-    ctx.fillStyle = '#cc4444';
-    ctx.font = 'bold 16px monospace';
+    ctx.strokeRect(10, 360, CANVAS_W - 20, 200);
+
+    ctx.fillStyle = '#cc3333';
+    ctx.font = 'bold 18px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('目の前が暗くなった……', CANVAS_W / 2, 430);
-    const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
-    ctx.globalAlpha = blink;
+    ctx.fillText('たおれてしまった……', CANVAS_W / 2, 420);
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '13px monospace';
-    ctx.fillText('タップでつづける', CANVAS_W / 2, 466);
+    ctx.fillText('HPを回復して帰還した', CANVAS_W / 2, 456);
+
+    const blink = 0.45 + 0.55 * Math.sin(this._blinkTimer * 4);
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = COLORS.textDim;
+    ctx.font = '14px monospace';
+    ctx.fillText('タップでつづける', CANVAS_W / 2, 530);
     ctx.globalAlpha = 1;
   }
 }

@@ -14,6 +14,7 @@ export class EndingScene extends Scene {
     this._inputLock= false;
     this._stars    = [];
     this._chapter  = 1;
+    this._tapHandler = null;
   }
 
   enter({ chapter = 1 } = {}) {
@@ -43,8 +44,44 @@ export class EndingScene extends Scene {
       '知らない声で。',
     ];
     this.game.audio.playBgm('ending');
-    // フェードイン
     this._inputLock = true;
+
+    this._tapHandler = (e) => {
+      if (e.type === 'touchstart') e.preventDefault();
+      this._handleTap();
+    };
+    this.game.canvas.addEventListener('touchstart', this._tapHandler, { passive: false });
+    this.game.canvas.addEventListener('mousedown',  this._tapHandler);
+  }
+
+  exit() {
+    if (this._tapHandler) {
+      this.game.canvas.removeEventListener('touchstart', this._tapHandler);
+      this.game.canvas.removeEventListener('mousedown',  this._tapHandler);
+      this._tapHandler = null;
+    }
+  }
+
+  _handleTap() {
+    if (this._inputLock) return;
+    if (this._phase === 1) {
+      const curLine = this._lines[this._lineIdx] || '';
+      if (this._charIdx < curLine.length) {
+        this._charIdx = curLine.length;
+      } else {
+        this.game.audio.playSfx('confirm');
+        this._lineIdx++;
+        this._charIdx  = 0;
+        this._charTimer = 0;
+        if (this._lineIdx >= this._lines.length) {
+          this._phase     = 2;
+          this._timer     = 0;
+          this._inputLock = true;
+        }
+      }
+    } else if (this._phase === 3) {
+      this.game.changeScene('title');
+    }
   }
 
   update(dt) {
@@ -66,16 +103,7 @@ export class EndingScene extends Scene {
         this._charIdx++;
       }
       if (this._charIdx >= curLine.length && !this._inputLock) {
-        if (this.game.input.isJust('a')) {
-          this.game.audio.playSfx('confirm');
-          this._lineIdx++;
-          this._charIdx = 0;
-          if (this._lineIdx >= this._lines.length) {
-            this._phase     = 2;
-            this._timer     = 0;
-            this._inputLock = true;
-          }
-        }
+        if (this.game.input.isJust('a')) this._handleTap();
       }
       return;
     }
@@ -94,10 +122,7 @@ export class EndingScene extends Scene {
     }
 
     if (this._phase === 3) {
-      // 第1章終了画面
-      if (this.game.input.isJust('a')) {
-        this.game.changeScene('title');
-      }
+      if (this.game.input.isJust('a')) this._handleTap();
     }
   }
 
@@ -197,7 +222,7 @@ export class EndingScene extends Scene {
     const blink = 0.4 + 0.6 * Math.sin(this._timer * 3);
     ctx.globalAlpha = blink;
     ctx.fillStyle = COLORS.textDim;
-    ctx.fillText('Aボタンでタイトルにもどる', CANVAS_W / 2, CANVAS_H - 80);
+    ctx.fillText('タップでタイトルにもどる', CANVAS_W / 2, CANVAS_H - 80);
     ctx.globalAlpha = 1;
   }
 }

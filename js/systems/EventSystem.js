@@ -167,6 +167,9 @@ export class EventSystem {
             maxHp: m.hp,
             mp: m.mp || 0,
             maxMp: m.mp || 0,
+            atk: m.atk || 5,
+            def: m.def || 3,
+            exp: 0,
             level: 1,
           });
         }
