@@ -1,0 +1,633 @@
+import { Scene } from '../engine/Scene.js';
+import { CANVAS_W, CANVAS_H, LAYOUT, COLORS } from '../constants.js';
+import { BattleSystem } from '../systems/BattleSystem.js';
+
+const ST = {
+  ENEMY_INTRO: 'enemy_intro',
+  SELECT_CMD:  'select_cmd',
+  SELECT_SKILL:'select_skill',
+  PLAYER_ATK:  'player_atk',
+  ENEMY_ATK:   'enemy_atk',
+  ANIM:        'anim',
+  RESULT:      'result',
+  WIN:         'win',
+  LOSE:        'lose',
+  RUN:         'run',
+};
+
+export class BattleScene extends Scene {
+  constructor(game) {
+    super(game);
+    this.sys = new BattleSystem(game);
+    this._state     = ST.ENEMY_INTRO;
+    this._enemy     = null;
+    this._party     = [];
+    this._msg       = '';
+    this._msgQueue  = [];
+    this._msgTimer  = 0;
+    this._cursor    = 0;
+    this._isBoss    = false;
+    this._onWin     = null;
+    this._animTimer = 0;
+    this._shake     = 0;
+    this._inputLock = false;
+    this._expGained = 0;
+    this._goldGained= 0;
+    this._levelUps  = [];
+    this._blinkTimer= 0;
+    this._enemyHp   = 0;
+    this._enemyShake= 0;
+    this._skillMenu = false;
+  }
+
+  enter({ enemyId, isBoss = false, onWin = null } = {}) {
+    const enemyData = this.game.loader.get('data/enemies/enemies.json');
+    const raw = enemyData?.[enemyId];
+    if (!raw) {
+      this.game.changeScene('world');
+      return;
+    }
+
+    this._enemy = {
+      ...raw,
+      hp:    raw.hp,
+      mp:    raw.mp || 0,
+      maxHp: raw.hp,
+      maxMp: raw.mp || 0,
+    };
+    this._party = [
+      ...this.game.state.party.map(m => ({ ...m })),
+      ...this.game.state.monsters.map(m => ({ ...m })),
+    ];
+    this._isBoss    = isBoss;
+    this._onWin     = onWin;
+    this._state     = ST.ENEMY_INTRO;
+    this._cursor    = 0;
+    this._msgQueue  = [];
+    this._inputLock = true;
+    this._skillMenu = false;
+    this._expGained = 0;
+    this._goldGained= 0;
+    this._levelUps  = [];
+    this._enemyHp   = raw.hp;
+    this._enemyShake= 0;
+    this._shake     = 0;
+
+    const bgm = isBoss ? 'boss' : 'battle';
+    this.game.audio.playBgm(bgm);
+
+    this._pushMsg(`${this._enemy.name}があらわれた！`, () => {
+      this._state     = ST.SELECT_CMD;
+      this._inputLock = false;
+    });
+  }
+
+  exit() {}
+
+  _pushMsg(text, onDone = null) {
+    this._msgQueue.push({ text, onDone });
+    if (this._msgQueue.length === 1) this._showNextMsg();
+  }
+
+  _showNextMsg() {
+    if (!this._msgQueue.length) return;
+    const item = this._msgQueue[0];
+    this._msg      = item.text;
+    this._msgTimer = 1.5;
+    this._inputLock = true;
+  }
+
+  update(dt) {
+    this._blinkTimer += dt;
+    if (this._enemyShake > 0) this._enemyShake -= dt * 10;
+    if (this._shake > 0)      this._shake      -= dt * 10;
+
+    // メッセージキュー処理
+    if (this._msgTimer > 0) {
+      this._msgTimer -= dt;
+      if (this.game.input.isJust('a') || this.game.input.isJust('b')) {
+        this._msgTimer = 0;
+      }
+      if (this._msgTimer <= 0) {
+        const done = this._msgQueue.shift();
+        if (done?.onDone) done.onDone();
+        if (this._msgQueue.length > 0) this._showNextMsg();
+        else this._inputLock = false;
+      }
+      return;
+    }
+
+    if (this._inputLock) return;
+
+    switch (this._state) {
+      case ST.SELECT_CMD:  this._updateSelectCmd(dt);  break;
+      case ST.SELECT_SKILL:this._updateSelectSkill(dt);break;
+      case ST.WIN:         this._updateWin(dt);        break;
+      case ST.LOSE:        this._updateLose(dt);       break;
+    }
+  }
+
+  _updateSelectCmd(dt) {
+    const inp = this.game.input;
+    const CMDS = this._skillMenu ? [] : ['たたかう', 'スキル', 'アイテム', 'にげる'];
+    const maxCursor = CMDS.length - 1;
+
+    if (inp.isJust('up'))    { this._cursor = Math.max(0, this._cursor - 1); this.game.audio.playSfx('cursor'); }
+    if (inp.isJust('down'))  { this._cursor = Math.min(maxCursor, this._cursor + 1); this.game.audio.playSfx('cursor'); }
+
+    if (inp.isJust('a')) {
+      this.game.audio.playSfx('confirm');
+      switch (this._cursor) {
+        case 0: this._doPlayerAttack(); break;
+        case 1: this._openSkillMenu();  break;
+        case 2: this._doItem();         break;
+        case 3: this._doRun();          break;
+      }
+      this._cursor = 0;
+    }
+    if (inp.isJust('b')) {
+      this.game.audio.playSfx('cancel');
+    }
+  }
+
+  _updateSelectSkill(dt) {
+    const inp = this.game.input;
+    const skills = this._party[0]?.skills || [];
+    if (inp.isJust('up'))   { this._cursor = Math.max(0, this._cursor - 1); this.game.audio.playSfx('cursor'); }
+    if (inp.isJust('down')) { this._cursor = Math.min(skills.length, this._cursor + 1); this.game.audio.playSfx('cursor'); }
+    if (inp.isJust('b'))    { this._skillMenu = false; this._state = ST.SELECT_CMD; this._cursor = 0; }
+    if (inp.isJust('a')) {
+      if (this._cursor === skills.length) {
+        this._skillMenu = false; this._state = ST.SELECT_CMD; this._cursor = 0;
+      } else {
+        this._doSkill(skills[this._cursor]);
+      }
+    }
+  }
+
+  _updateWin(dt) {
+    if (this.game.input.isJust('a') || this.game.input.isJust('b')) {
+      this._finishBattle(true);
+    }
+  }
+
+  _updateLose(dt) {
+    if (this.game.input.isJust('a') || this.game.input.isJust('b')) {
+      this._finishBattle(false);
+    }
+  }
+
+  _doPlayerAttack() {
+    const attacker = this._party[0];
+    const dmg = this.sys.calcDamageSimple(attacker.atk, this._enemy.def);
+    this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
+    this._enemyShake = 0.3;
+    this.game.audio.playSfx('hit');
+    this._pushMsg(`サトシの攻撃！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
+      if (this._enemy.hp <= 0) this._winBattle();
+      else this._doEnemyAction();
+    });
+  }
+
+  _openSkillMenu() {
+    const skills = this._party[0]?.skills || [];
+    if (!skills.length) {
+      this._pushMsg('つかえるスキルがない。');
+      return;
+    }
+    this._skillMenu = true;
+    this._state     = ST.SELECT_SKILL;
+    this._cursor    = 0;
+  }
+
+  _doSkill(skillId) {
+    const skillData = this.game.loader.get('data/items/items.json')?.skills?.[skillId];
+    if (!skillData) {
+      this._pushMsg('そのスキルはつかえない。');
+      return;
+    }
+    const member = this._party[0];
+    if (member.mp < skillData.mp) {
+      this._pushMsg('MPが足りない！');
+      return;
+    }
+    member.mp -= skillData.mp;
+    const dmg = this.sys.calcDamageSimple(member.atk * skillData.power, this._enemy.def);
+    this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
+    this._enemyShake = 0.4;
+    this.game.audio.playSfx('magic');
+    this._skillMenu = false;
+    this._state = ST.SELECT_CMD;
+    this._pushMsg(`${skillData.name}！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
+      if (this._enemy.hp <= 0) this._winBattle();
+      else this._doEnemyAction();
+    });
+  }
+
+  _doItem() {
+    const herbs = this.game.state.inventory.find(i => i.id === 'herb');
+    if (!herbs || herbs.count <= 0) {
+      this._pushMsg('アイテムがない。');
+      return;
+    }
+    herbs.count--;
+    if (herbs.count <= 0) {
+      this.game.state.inventory = this.game.state.inventory.filter(i => i.id !== 'herb' || i.count > 0);
+    }
+    const healed = 20 + Math.floor(Math.random() * 10);
+    const member = this._party[0];
+    member.hp = Math.min(member.maxHp, member.hp + healed);
+    // game stateにも反映
+    this.game.state.party[0].hp = member.hp;
+    this.game.audio.playSfx('item');
+    this._pushMsg(`やくそうを使った！\nHPが${healed}回復した！`, () => {
+      this._doEnemyAction();
+    });
+  }
+
+  _doRun() {
+    const chance = 0.6 + (this._isBoss ? -0.6 : 0);
+    if (Math.random() < chance) {
+      this.game.audio.playSfx('confirm');
+      this._pushMsg('うまくにげられた！', () => {
+        this._finishBattle(false, true);
+      });
+    } else {
+      this._pushMsg('にげられなかった！', () => {
+        this._doEnemyAction();
+      });
+    }
+  }
+
+  _doEnemyAction() {
+    if (this._enemy.hp <= 0) return;
+    const action = this.sys.enemyAction(this._enemy, this._party);
+    const target = this._party[0];
+    const dmg    = this.sys.calcDamageSimple(this._enemy.atk, target.def);
+    target.hp    = Math.max(0, target.hp - dmg);
+    this._shake  = 0.3;
+    this.game.audio.playSfx('damage');
+    // game stateに反映
+    const stateParty = [...this.game.state.party, ...this.game.state.monsters];
+    stateParty[0].hp = target.hp;
+
+    this._pushMsg(`${this._enemy.name}のこうげき！\n${target.name}に${dmg}のダメージ！`, () => {
+      if (target.hp <= 0) this._loseBattle();
+      else {
+        this._state = ST.SELECT_CMD;
+        this._inputLock = false;
+      }
+    });
+  }
+
+  _winBattle() {
+    const rewards = this.sys.getBattleRewards(this._enemy);
+    this._expGained  = rewards.exp;
+    this._goldGained = rewards.gold;
+    this.game.audio.playSfx('victory');
+
+    // 経験値分配
+    this._party.forEach((m, i) => {
+      const stateMember = i < this.game.state.party.length
+        ? this.game.state.party[i]
+        : this.game.state.monsters[i - this.game.state.party.length];
+      if (!stateMember) return;
+      stateMember.exp = (stateMember.exp || 0) + rewards.exp;
+      const newLv = this.sys.checkLevelUp(stateMember);
+      if (newLv) {
+        this.sys.applyLevelUp(stateMember, newLv);
+        this._levelUps.push({ name: stateMember.name, level: newLv });
+      }
+      // バトル中メンバーにも反映
+      m.hp = stateMember.hp;
+    });
+
+    this._pushMsg(`${this._enemy.name}をたおした！\n${rewards.exp}けいけんち\n${rewards.gold}G かくとく！`, () => {
+      if (this._levelUps.length > 0) {
+        const lu = this._levelUps.shift();
+        this._pushMsg(`${lu.name}はレベル${lu.level}にあがった！`, () => {
+          this._state = ST.WIN;
+          this._inputLock = false;
+        });
+      } else {
+        this._state = ST.WIN;
+        this._inputLock = false;
+      }
+    });
+  }
+
+  _loseBattle() {
+    this.game.audio.playSfx('cancel');
+    this._pushMsg('たおれてしまった...', () => {
+      this._state = ST.LOSE;
+      this._inputLock = false;
+    });
+  }
+
+  _finishBattle(won, ran = false) {
+    const world = this.game._scenes?.world;
+    const onWin = this._onWin;
+    if (won || ran) {
+      this.game.changeScene('world');
+      if (world) world.returnFromBattle(won, onWin);
+    } else {
+      // 全滅 → タイトルへ
+      this.game.state.party.forEach(m => { m.hp = Math.max(1, Math.floor(m.maxHp / 4)); });
+      this.game.state.currentMap = 'satoshi_house';
+      this.game.state.playerX   = 6;
+      this.game.state.playerY   = 7;
+      this.game.changeScene('world', { map: 'satoshi_house', x: 6, y: 7 });
+    }
+  }
+
+  render(ctx) {
+    // 背景
+    const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
+    grad.addColorStop(0, '#07091e');
+    grad.addColorStop(1, '#12082a');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // 星背景
+    this._drawBattleBg(ctx);
+
+    // 敵
+    this._drawEnemy(ctx);
+
+    // 味方ステータス
+    this._drawPartyStatus(ctx);
+
+    // コマンドメニュー
+    if (this._state === ST.SELECT_CMD) this._drawCommandMenu(ctx);
+    if (this._state === ST.SELECT_SKILL) this._drawSkillMenu(ctx);
+
+    // メッセージ
+    this._drawBattleMsg(ctx);
+
+    // WIN/LOSE
+    if (this._state === ST.WIN)  this._drawWinScreen(ctx);
+    if (this._state === ST.LOSE) this._drawLoseScreen(ctx);
+  }
+
+  _drawBattleBg(ctx) {
+    // 地平線
+    ctx.fillStyle = '#0e0e28';
+    ctx.fillRect(0, 260, CANVAS_W, 60);
+    ctx.fillStyle = '#181830';
+    ctx.fillRect(0, 280, CANVAS_W, 40);
+    // 星
+    for (let i = 0; i < 30; i++) {
+      const x = (i * 37 + 10) % CANVAS_W;
+      const y = (i * 23 + 5)  % 200;
+      const alpha = 0.3 + 0.7 * Math.abs(Math.sin(this._blinkTimer * 0.5 + i));
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#aabbff';
+      ctx.fillRect(x, y, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  _drawEnemy(ctx) {
+    if (!this._enemy) return;
+    const ex = CANVAS_W / 2 + (this._enemyShake > 0 ? (Math.random() - 0.5) * 8 : 0);
+    const ey = 130;
+    const hpRatio = this._enemy.hp / this._enemy.maxHp;
+
+    // 敵スプライト（仮素材）
+    this._drawEnemySprite(ctx, ex - 40, ey - 48, this._enemy.id, hpRatio);
+
+    // 敵名とHP
+    ctx.textAlign = 'center';
+    ctx.fillStyle = COLORS.text;
+    ctx.font = 'bold 13px monospace';
+    ctx.fillText(this._enemy.name, ex, ey + 50);
+
+    // HPバー
+    const bw = 80;
+    const bx = ex - bw / 2;
+    const by = ey + 56;
+    ctx.fillStyle = '#1a1030';
+    ctx.fillRect(bx, by, bw, 8);
+    ctx.fillStyle = hpRatio > 0.3 ? '#cc4422' : '#992211';
+    ctx.fillRect(bx, by, Math.floor(bw * hpRatio), 8);
+    ctx.strokeStyle = '#3a2050';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, bw, 8);
+  }
+
+  _drawEnemySprite(ctx, x, y, id, hpRatio) {
+    const flicker = hpRatio < 0.2 && Math.sin(this._blinkTimer * 10) > 0;
+    ctx.globalAlpha = flicker ? 0.5 : 1;
+
+    switch (id) {
+      case 'forest_slime': {
+        // 緑のスライム
+        const blink = 0.8 + 0.2 * Math.sin(this._blinkTimer * 3);
+        ctx.fillStyle = `rgba(40, ${Math.floor(150 * blink)}, 40, 1)`;
+        ctx.fillRect(x+16, y+24, 48, 36);
+        ctx.fillRect(x+20, y+16, 40, 14);
+        ctx.fillRect(x+26, y+10, 28, 10);
+        ctx.fillStyle = '#1a5520';
+        ctx.fillRect(x+20, y+28, 10, 10);
+        ctx.fillRect(x+50, y+28, 10, 10);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x+24, y+28, 6, 6);
+        ctx.fillRect(x+50, y+28, 6, 6);
+        break;
+      }
+      case 'puni_king': {
+        // ボス：大型のプニキング
+        const blink2 = 0.8 + 0.2 * Math.sin(this._blinkTimer * 2);
+        ctx.fillStyle = `rgba(${Math.floor(120*blink2)}, 30, ${Math.floor(180*blink2)}, 1)`;
+        ctx.fillRect(x+4,  y+20, 72, 50);
+        ctx.fillRect(x+10, y+8,  60, 20);
+        ctx.fillRect(x+20, y+2,  40, 12);
+        // 王冠
+        ctx.fillStyle = '#e0c020';
+        ctx.fillRect(x+16, y-4, 48, 10);
+        ctx.fillRect(x+14, y-12, 8, 10);
+        ctx.fillRect(x+36, y-14, 8, 12);
+        ctx.fillRect(x+58, y-12, 8, 10);
+        // 目（光る）
+        ctx.fillStyle = '#ff4488';
+        ctx.fillRect(x+22, y+22, 12, 12);
+        ctx.fillRect(x+46, y+22, 12, 12);
+        ctx.fillStyle = '#ffaacc';
+        ctx.fillRect(x+24, y+24, 4, 4);
+        ctx.fillRect(x+48, y+24, 4, 4);
+        break;
+      }
+      default: {
+        // 汎用敵
+        ctx.fillStyle = '#884422';
+        ctx.fillRect(x+20, y+10, 40, 50);
+        ctx.fillStyle = '#aa6644';
+        ctx.fillRect(x+24, y+14, 32, 40);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x+28, y+22, 8, 8);
+        ctx.fillRect(x+44, y+22, 8, 8);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  _drawPartyStatus(ctx) {
+    const sy = 310;
+    ctx.fillStyle = 'rgba(8, 10, 28, 0.88)';
+    ctx.fillRect(8, sy, CANVAS_W - 16, 70);
+    ctx.strokeStyle = COLORS.border;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(8, sy, CANVAS_W - 16, 70);
+
+    this._party.forEach((m, i) => {
+      const ox = 20 + i * 160;
+      ctx.fillStyle = COLORS.accent;
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(m.name, ox, sy + 18);
+      ctx.fillStyle = COLORS.textDim;
+      ctx.font = '11px monospace';
+      ctx.fillText(`HP`, ox, sy + 36);
+      const bw = 90;
+      const ratio = Math.max(0, m.hp / m.maxHp);
+      ctx.fillStyle = '#1a2040';
+      ctx.fillRect(ox + 22, sy + 26, bw, 8);
+      ctx.fillStyle = ratio > 0.3 ? COLORS.hp : COLORS.hpLow;
+      ctx.fillRect(ox + 22, sy + 26, Math.floor(bw * ratio), 8);
+      ctx.strokeStyle = COLORS.border;
+      ctx.strokeRect(ox + 22, sy + 26, bw, 8);
+      ctx.fillStyle = COLORS.text;
+      ctx.fillText(`${m.hp}/${m.maxHp}`, ox + 22, sy + 50);
+      if (m.maxMp > 0) {
+        ctx.fillStyle = COLORS.textDim;
+        ctx.fillText(`MP ${m.mp}/${m.maxMp}`, ox + 22, sy + 64);
+      }
+    });
+  }
+
+  _drawCommandMenu(ctx) {
+    const cmds = ['たたかう', 'スキル', 'アイテム', 'にげる'];
+    const mx = CANVAS_W / 2;
+    const my = 400;
+    const cw = 330, ch = 100;
+    const cx = mx - cw / 2;
+
+    ctx.fillStyle = 'rgba(8, 10, 28, 0.95)';
+    ctx.fillRect(cx, my, cw, ch);
+    ctx.strokeStyle = COLORS.border;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cx, my, cw, ch);
+
+    for (let i = 0; i < 4; i++) {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      const tx  = cx + 20 + col * 160;
+      const ty  = my + 28 + row * 36;
+      const sel = i === this._cursor;
+      if (sel) {
+        ctx.fillStyle = COLORS.accent;
+        ctx.font = '12px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('▶', tx - 14, ty);
+      }
+      ctx.fillStyle = sel ? COLORS.accent : COLORS.text;
+      ctx.font = `${sel ? 'bold ' : ''}14px monospace`;
+      ctx.textAlign = 'left';
+      ctx.fillText(cmds[i], tx, ty);
+    }
+  }
+
+  _drawSkillMenu(ctx) {
+    const skills = this._party[0]?.skills || [];
+    const mx = 30, my = 400;
+    const cw = 300, ch = (skills.length + 1) * 26 + 20;
+
+    ctx.fillStyle = 'rgba(8, 10, 28, 0.97)';
+    ctx.fillRect(mx, my, cw, ch);
+    ctx.strokeStyle = COLORS.border;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(mx, my, cw, ch);
+
+    ctx.fillStyle = COLORS.accent;
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('スキル', mx + 12, my + 16);
+
+    skills.forEach((s, i) => {
+      const ty = my + 30 + i * 26;
+      const sel = i === this._cursor;
+      if (sel) { ctx.fillStyle = COLORS.accent; ctx.fillText('▶', mx + 10, ty); }
+      ctx.fillStyle = sel ? COLORS.accent : COLORS.text;
+      ctx.font = '13px monospace';
+      ctx.fillText(s, mx + 24, ty);
+    });
+
+    // 戻る
+    const retY = my + 30 + skills.length * 26;
+    const retSel = this._cursor === skills.length;
+    if (retSel) { ctx.fillStyle = COLORS.accent; ctx.fillText('▶', mx + 10, retY); }
+    ctx.fillStyle = retSel ? COLORS.accent : COLORS.textDim;
+    ctx.fillText('もどる', mx + 24, retY);
+  }
+
+  _drawBattleMsg(ctx) {
+    if (this._msgTimer <= 0) return;
+    const my = 390;
+    ctx.fillStyle = 'rgba(6, 8, 22, 0.95)';
+    ctx.fillRect(8, my, CANVAS_W - 16, 80);
+    ctx.strokeStyle = COLORS.border;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, my, CANVAS_W - 16, 80);
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '14px monospace';
+    ctx.textAlign = 'left';
+    const lines = this._msg.split('\n');
+    lines.forEach((l, i) => ctx.fillText(l, 22, my + 24 + i * 20));
+    // 続きインジケーター
+    const alpha = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = COLORS.accent;
+    ctx.textAlign = 'right';
+    ctx.fillText('▼', CANVAS_W - 16, my + 72);
+    ctx.globalAlpha = 1;
+  }
+
+  _drawWinScreen(ctx) {
+    ctx.fillStyle = 'rgba(4, 6, 20, 0.7)';
+    ctx.fillRect(0, 390, CANVAS_W, 110);
+    ctx.strokeStyle = COLORS.gold;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, 392, CANVAS_W - 16, 106);
+    ctx.fillStyle = COLORS.gold;
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('★ しょうり ★', CANVAS_W / 2, 418);
+    ctx.fillStyle = COLORS.text;
+    ctx.font = '13px monospace';
+    ctx.fillText(`EXP +${this._expGained}`, CANVAS_W / 2, 444);
+    if (this._goldGained > 0) ctx.fillText(`G +${this._goldGained}`, CANVAS_W / 2, 464);
+    const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = COLORS.accent;
+    ctx.fillText('Aボタンでつづける', CANVAS_W / 2, 490);
+    ctx.globalAlpha = 1;
+  }
+
+  _drawLoseScreen(ctx) {
+    ctx.fillStyle = 'rgba(20, 4, 4, 0.8)';
+    ctx.fillRect(0, 390, CANVAS_W, 110);
+    ctx.strokeStyle = '#aa2222';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(8, 392, CANVAS_W - 16, 106);
+    ctx.fillStyle = '#cc4444';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('たおれてしまった...', CANVAS_W / 2, 430);
+    const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
+    ctx.globalAlpha = blink;
+    ctx.fillStyle = COLORS.textDim;
+    ctx.font = '13px monospace';
+    ctx.fillText('Aボタンでつづける', CANVAS_W / 2, 466);
+    ctx.globalAlpha = 1;
+  }
+}

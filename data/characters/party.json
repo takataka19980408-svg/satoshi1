@@ -1,0 +1,17 @@
+{
+  "satoshi": {
+    "id": "satoshi",
+    "name": "サトシ",
+    "sprite": "satoshi",
+    "level": 1,
+    "exp": 0,
+    "hp": 40,
+    "maxHp": 40,
+    "mp": 10,
+    "maxMp": 10,
+    "atk": 10,
+    "def": 7,
+    "spd": 8,
+    "skills": []
+  }
+}

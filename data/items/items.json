@@ -1,0 +1,25 @@
+{
+  "herb": {
+    "id": "herb",
+    "name": "やくそう",
+    "desc": "HPを20〜30回復する。",
+    "type": "consumable",
+    "effect": "heal",
+    "value": 20
+  },
+  "strange_stone": {
+    "id": "strange_stone",
+    "name": "奇妙な石",
+    "desc": "青白く光る、不思議な石。\nときどき、何かが囁く気がする。",
+    "type": "key",
+    "effect": null
+  },
+  "skills": {
+    "guard": {
+      "name": "まもる",
+      "mp": 0,
+      "power": 0,
+      "desc": "1ターン防御力を上げる。"
+    }
+  }
+}
