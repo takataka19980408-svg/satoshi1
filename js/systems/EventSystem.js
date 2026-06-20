@@ -14,7 +14,10 @@ export class EventSystem {
   }
 
   load(eventData) {
-    this._events        = eventData || {};
+    this._events = eventData || {};
+  }
+
+  reset() {
     this._running       = false;
     this._waiting       = false;
     this._waitTimer     = 0;

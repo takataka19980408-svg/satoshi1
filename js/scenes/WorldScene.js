@@ -1,5 +1,5 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, LAYOUT, COLORS } from '../constants.js';
+import { CANVAS_W, LAYOUT, COLORS, TILE_SIZE } from '../constants.js';
 import { MapSystem }    from '../systems/MapSystem.js';
 import { DialogSystem } from '../systems/DialogSystem.js';
 import { EventSystem }  from '../systems/EventSystem.js';
@@ -21,39 +21,52 @@ export class WorldScene extends Scene {
     this._inputLock     = false;
     this._initialized   = false;
     this._encounterCooldown = 0;
-    this._tapHandler    = null;
-    this._tapEndHandler = null;
-    this._tapDir        = null;
+    this._touchStartHandler = null;
+    this._touchMoveHandler  = null;
+    this._touchEndHandler   = null;
+    this._joystick = {
+      started: false, active: false, inGameArea: false,
+      baseX: 0, baseY: 0, knobX: 0, knobY: 0,
+      tapX: 0, tapY: 0, dir: null,
+    };
 
     this.player.onStep(() => this._onPlayerStep());
   }
 
   async enter(params = {}) {
     this._inputLock = true;
+    this.events.reset();
 
-    // タッチハンドラ登録（再登録前にクリア）
-    if (this._tapHandler) {
-      this.game.canvas.removeEventListener('touchstart',  this._tapHandler);
-      this.game.canvas.removeEventListener('mousedown',   this._tapHandler);
-      this.game.canvas.removeEventListener('touchend',    this._tapEndHandler);
-      this.game.canvas.removeEventListener('touchcancel', this._tapEndHandler);
-      this.game.canvas.removeEventListener('mouseup',     this._tapEndHandler);
-    }
-    this._tapDir = null;
-    this._tapHandler = (e) => {
+    this._removeTouchHandlers();
+    this._joystick.active  = false;
+    this._joystick.started = false;
+    this._joystick.dir     = null;
+
+    this._touchStartHandler = (e) => {
       if (e.type === 'touchstart') e.preventDefault();
       const src  = e.changedTouches ? e.changedTouches[0] : e;
       const rect = this.game.canvas.getBoundingClientRect();
       const lx   = (src.clientX - rect.left) / this.game.scale;
       const ly   = (src.clientY - rect.top)  / this.game.scale;
-      this._handleWorldTap(lx, ly);
+      this._handleTouchStart(lx, ly);
     };
-    this._tapEndHandler = () => { this._tapDir = null; };
-    this.game.canvas.addEventListener('touchstart',  this._tapHandler, { passive: false });
-    this.game.canvas.addEventListener('mousedown',   this._tapHandler);
-    this.game.canvas.addEventListener('touchend',    this._tapEndHandler);
-    this.game.canvas.addEventListener('touchcancel', this._tapEndHandler);
-    this.game.canvas.addEventListener('mouseup',     this._tapEndHandler);
+    this._touchMoveHandler = (e) => {
+      if (e.type === 'touchmove') e.preventDefault();
+      const src  = e.changedTouches ? e.changedTouches[0] : e;
+      const rect = this.game.canvas.getBoundingClientRect();
+      const lx   = (src.clientX - rect.left) / this.game.scale;
+      const ly   = (src.clientY - rect.top)  / this.game.scale;
+      this._handleTouchMove(lx, ly);
+    };
+    this._touchEndHandler = () => { this._handleTouchEnd(); };
+
+    this.game.canvas.addEventListener('touchstart',  this._touchStartHandler, { passive: false });
+    this.game.canvas.addEventListener('mousedown',   this._touchStartHandler);
+    this.game.canvas.addEventListener('touchmove',   this._touchMoveHandler,  { passive: false });
+    this.game.canvas.addEventListener('mousemove',   this._touchMoveHandler);
+    this.game.canvas.addEventListener('touchend',    this._touchEndHandler);
+    this.game.canvas.addEventListener('touchcancel', this._touchEndHandler);
+    this.game.canvas.addEventListener('mouseup',     this._touchEndHandler);
 
     const mapId = params.map || this.game.state.currentMap || 'satoshi_house';
     await this._loadMap(mapId);
@@ -65,11 +78,9 @@ export class WorldScene extends Scene {
     );
     this.map.updateCamera(this.player.px, this.player.py);
 
-    // BGM
     const bgm = this.map.mapData?.bgm || 'village';
     this.game.audio.playBgm(bgm);
 
-    // 最初のイベント
     if (params.firstEvent) {
       setTimeout(() => {
         this.events.trigger(params.firstEvent);
@@ -80,13 +91,31 @@ export class WorldScene extends Scene {
     }
   }
 
+  _removeTouchHandlers() {
+    if (this._touchStartHandler) {
+      this.game.canvas.removeEventListener('touchstart', this._touchStartHandler);
+      this.game.canvas.removeEventListener('mousedown',  this._touchStartHandler);
+    }
+    if (this._touchMoveHandler) {
+      this.game.canvas.removeEventListener('touchmove', this._touchMoveHandler);
+      this.game.canvas.removeEventListener('mousemove', this._touchMoveHandler);
+    }
+    if (this._touchEndHandler) {
+      this.game.canvas.removeEventListener('touchend',    this._touchEndHandler);
+      this.game.canvas.removeEventListener('touchcancel', this._touchEndHandler);
+      this.game.canvas.removeEventListener('mouseup',     this._touchEndHandler);
+    }
+    this._touchStartHandler = null;
+    this._touchMoveHandler  = null;
+    this._touchEndHandler   = null;
+  }
+
   async _loadMap(mapId) {
     this.game.state.currentMap = mapId;
     await this.map.load(mapId);
 
-    // NPC初期化
-    const npcDefs  = this.map.mapData?.npcs || [];
-    const npcData  = this.game.loader.get('data/npcs/chapter1.json') || {};
+    const npcDefs   = this.map.mapData?.npcs || [];
+    const npcData   = this.game.loader.get('data/npcs/chapter1.json') || {};
     const eventData = this.game.loader.get('data/events/chapter1.json') || {};
     this.events.load(eventData);
     this.npcs = npcDefs.map(def => new NPC(def, npcData[def.id]));
@@ -96,15 +125,10 @@ export class WorldScene extends Scene {
     this.game.state.playerX   = this.player.tileX;
     this.game.state.playerY   = this.player.tileY;
     this.game.state.playerDir = this.player.dir;
-    if (this._tapHandler) {
-      this.game.canvas.removeEventListener('touchstart',  this._tapHandler);
-      this.game.canvas.removeEventListener('mousedown',   this._tapHandler);
-      this.game.canvas.removeEventListener('touchend',    this._tapEndHandler);
-      this.game.canvas.removeEventListener('touchcancel', this._tapEndHandler);
-      this.game.canvas.removeEventListener('mouseup',     this._tapEndHandler);
-      this._tapHandler    = null;
-      this._tapEndHandler = null;
-    }
+    this._removeTouchHandlers();
+    this._joystick.active  = false;
+    this._joystick.started = false;
+    this._joystick.dir     = null;
   }
 
   update(dt) {
@@ -143,72 +167,148 @@ export class WorldScene extends Scene {
     if (inp.isDown('left'))  dx = -1;
     if (inp.isDown('right')) dx =  1;
 
-    // タッチ方向（キーボード入力がなければ使用）
-    if (dx === 0 && dy === 0 && this._tapDir) {
-      dx = this._tapDir.dx;
-      dy = this._tapDir.dy;
+    if (dx === 0 && dy === 0 && this._joystick.active && this._joystick.dir) {
+      dx = this._joystick.dir.dx;
+      dy = this._joystick.dir.dy;
     }
 
     if (dx === 0 && dy === 0) return;
-
-    // 斜め移動は禁止（縦優先）
     if (dy !== 0) dx = 0;
-
     this.player.tryMove(dx, dy, this.map);
   }
 
-  _handleWorldTap(lx, ly) {
-    // ダイアログ中はどこをタップしても次へ進める
+  _handleTouchStart(lx, ly) {
+    this._joystick.started    = true;
+    this._joystick.active     = false;
+    this._joystick.dir        = null;
+    this._joystick.baseX      = lx;
+    this._joystick.baseY      = ly;
+    this._joystick.knobX      = lx;
+    this._joystick.knobY      = ly;
+    this._joystick.tapX       = lx;
+    this._joystick.tapY       = ly;
+    this._joystick.inGameArea = (ly >= LAYOUT.game.y && ly < LAYOUT.game.y + LAYOUT.game.h);
+  }
+
+  _handleTouchMove(lx, ly) {
+    if (!this._joystick.started) return;
+    if (this.dialog.active || this._inputLock || this.events.isRunning) return;
+    if (!this._joystick.inGameArea) return;
+
+    const dx   = lx - this._joystick.baseX;
+    const dy   = ly - this._joystick.baseY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist > 24) {
+      this._joystick.active = true;
+      const ratio = Math.min(dist, 40) / dist;
+      this._joystick.knobX = this._joystick.baseX + dx * ratio;
+      this._joystick.knobY = this._joystick.baseY + dy * ratio;
+
+      if (Math.abs(dx) > Math.abs(dy)) {
+        this._joystick.dir = dx > 0 ? { dx: 1, dy: 0 } : { dx: -1, dy: 0 };
+      } else {
+        this._joystick.dir = dy > 0 ? { dx: 0, dy: 1 } : { dx: 0, dy: -1 };
+      }
+    }
+  }
+
+  _handleTouchEnd() {
+    const wasActive = this._joystick.active;
+    const tapX = this._joystick.tapX;
+    const tapY = this._joystick.tapY;
+    this._joystick.active  = false;
+    this._joystick.started = false;
+    this._joystick.dir     = null;
+
+    if (!wasActive) this._handleTap(tapX, tapY);
+  }
+
+  _handleTap(lx, ly) {
+    // Advance dialog on tap anywhere
     if (this.dialog.active) {
-      this.events.onConfirm();
+      // If choices are shown, let player tap directly on a choice
+      if (this.dialog.choices && this.dialog.done) {
+        const choiceY = LAYOUT.msg.y + 20;
+        const choiceH = 22;
+        const bx = 120, bw = 120;
+        if (lx >= bx && lx <= bx + bw && ly >= choiceY) {
+          const idx = Math.floor((ly - choiceY - 10) / choiceH);
+          if (idx >= 0 && idx < this.dialog.choices.length) {
+            this.dialog.choiceIdx = idx;
+          }
+        }
+      }
+      if (!this.events.onConfirm()) this.dialog.confirm();
       return;
     }
 
     if (this._inputLock || this.events.isRunning) return;
 
-    // コントローラエリア（☰ メニューボタン）
+    // Ctrl area — menu button
     if (ly >= LAYOUT.ctrl.y) {
-      if (lx >= CANVAS_W - 96 && !this._inputLock) {
+      if (lx >= CANVAS_W - 96) {
         this.game.audio.playSfx('cursor');
         this.game.changeScene('menu', { returnTo: 'world' });
       }
       return;
     }
 
-    // メッセージエリアはスキップ
     if (ly >= LAYOUT.msg.y) return;
 
-    // ゲームエリア（タップで方向移動）
+    // Game area
     if (ly >= LAYOUT.game.y && ly < LAYOUT.game.y + LAYOUT.game.h) {
-      const playerScreenX = this.player.px - this.map.camX;
-      const playerScreenY = LAYOUT.game.y + this.player.py - this.map.camY;
-      const dX = lx - playerScreenX;
-      const dY = ly - playerScreenY;
+      const { tileX, tileY } = this._screenToTile(lx, ly);
 
-      // プレイヤーの真上タップは無視
-      if (Math.abs(dX) < 10 && Math.abs(dY) < 10) return;
-
-      let dx = 0, dy = 0;
-      if (Math.abs(dX) > Math.abs(dY)) {
-        dx = dX > 0 ? 1 : -1;
-      } else {
-        dy = dY > 0 ? 1 : -1;
+      // posEvent at tapped tile (stone tap, etc.) — triggers when adjacent
+      const posEv = this.map.getEventAt(tileX, tileY);
+      if (posEv && !this.events.flagSet(posEv.flag)) {
+        const dist = Math.abs(tileX - this.player.tileX) + Math.abs(tileY - this.player.tileY);
+        if (dist <= 2) {
+          this.events.trigger(posEv.eventId);
+          return;
+        }
       }
 
-      // 前方にNPCがいれば話しかける
-      if (!this.player.moving) {
-        const tx = this.player.tileX + dx;
-        const ty = this.player.tileY + dy;
-        const npc = this.map.getNpcAt(tx, ty);
-        if (npc) {
-          this.player.dir = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
+      // NPC at tapped tile
+      const npc = this.map.getNpcAt(tileX, tileY);
+      if (npc) {
+        const dist = Math.abs(tileX - this.player.tileX) + Math.abs(tileY - this.player.tileY);
+        if (dist <= 2) {
           const npcEntity = this.npcs.find(n => n.id === npc.id);
           if (npcEntity) { this._talkToNpc(npcEntity); return; }
         }
       }
 
-      this._tapDir = { dx, dy };
+      // Tap to step in direction of tap
+      const playerScreenX = this.player.px - this.map.camX;
+      const playerScreenY = LAYOUT.game.y + this.player.py - this.map.camY;
+      const dX = lx - playerScreenX;
+      const dY = ly - playerScreenY;
+      if (Math.abs(dX) < 12 && Math.abs(dY) < 12) return;
+
+      let dx = 0, dy = 0;
+      if (Math.abs(dX) > Math.abs(dY)) dx = dX > 0 ? 1 : -1;
+      else dy = dY > 0 ? 1 : -1;
+
+      if (!this.player.moving) {
+        const tx = this.player.tileX + dx;
+        const ty = this.player.tileY + dy;
+        const adjNpc = this.map.getNpcAt(tx, ty);
+        if (adjNpc) {
+          this.player.dir = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
+          const npcEntity = this.npcs.find(n => n.id === adjNpc.id);
+          if (npcEntity) { this._talkToNpc(npcEntity); return; }
+        }
+        this.player.tryMove(dx, dy, this.map);
+      }
     }
+  }
+
+  _screenToTile(lx, ly) {
+    const tileX = Math.floor((lx + this.map.camX) / TILE_SIZE);
+    const tileY = Math.floor((ly - LAYOUT.game.y + this.map.camY) / TILE_SIZE);
+    return { tileX, tileY };
   }
 
   _handleDialogInput() {
@@ -216,14 +316,14 @@ export class WorldScene extends Scene {
     const inp = this.game.input;
     if (inp.isJust('up'))   this.dialog.selectChoice(-1);
     if (inp.isJust('down')) this.dialog.selectChoice(1);
-    if (inp.isJust('a'))    this.events.onConfirm();
-    if (inp.isJust('b'))    this.events.onConfirm();
+    if (inp.isJust('a') || inp.isJust('b')) {
+      if (!this.events.onConfirm()) this.dialog.confirm();
+    }
   }
 
   _handleActionInput() {
     const inp = this.game.input;
     if (inp.isJust('a')) {
-      // 前方のNPCに話しかける
       const { dx, dy } = this._facingDelta();
       const tx = this.player.tileX + dx;
       const ty = this.player.tileY + dy;
@@ -269,7 +369,6 @@ export class WorldScene extends Scene {
     const tx = this.player.tileX;
     const ty = this.player.tileY;
 
-    // マップ出口チェック
     const exit = this.map.getExit(tx, ty);
     if (exit) {
       this._inputLock = true;
@@ -280,14 +379,12 @@ export class WorldScene extends Scene {
       return;
     }
 
-    // 座標イベントチェック
     const posEv = this.map.getEventAt(tx, ty);
     if (posEv && !this.events.flagSet(posEv.flag)) {
       this.events.trigger(posEv.eventId);
       return;
     }
 
-    // ランダムエンカウント
     if (this._encounterCooldown <= 0 && this.player.checkEncounter(this.map)) {
       this._startRandomBattle();
     }
@@ -296,17 +393,13 @@ export class WorldScene extends Scene {
   _startRandomBattle() {
     const mapData = this.map.mapData;
     if (!mapData?.encounters?.length) return;
-    const pool = mapData.encounters;
+    const pool  = mapData.encounters;
     const entry = pool[Math.floor(Math.random() * pool.length)];
     this._encounterCooldown = 3;
     this.game.audio.playSfx('hit');
     this._inputLock = true;
     setTimeout(() => {
-      this.game.changeScene('battle', {
-        enemyId: entry.id,
-        isBoss: false,
-        onWin: null,
-      });
+      this.game.changeScene('battle', { enemyId: entry.id, isBoss: false, onWin: null });
     }, 200);
   }
 
@@ -332,7 +425,6 @@ export class WorldScene extends Scene {
     this._flashAlpha    = 1;
   }
 
-  // バトルから帰還したとき
   returnFromBattle(won, onWin = null) {
     this._inputLock = false;
     this._encounterCooldown = 4;
@@ -348,22 +440,15 @@ export class WorldScene extends Scene {
   }
 
   render(ctx) {
-    // マップ描画
-    const npcSprites = this.npcs.map(n => ({
-      x: n.x, y: n.y, sprite: n.sprite, id: n.id,
-    }));
+    const npcSprites = this.npcs.map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id }));
     this.map.render(ctx, npcSprites, this.player.spriteInfo);
 
-    // ステータスバー
     this._drawStatus(ctx);
-
-    // メッセージウィンドウ
     this.dialog.render(ctx);
-
-    // メニューボタン
     this._drawMenuBtn(ctx);
 
-    // フラッシュエフェクト
+    if (this._joystick.active) this._drawJoystick(ctx);
+
     if (this._flashTimer > 0 && this._flashColor) {
       ctx.globalAlpha = this._flashAlpha * 0.7;
       ctx.fillStyle = this._flashColor;
@@ -372,12 +457,37 @@ export class WorldScene extends Scene {
     }
   }
 
+  _drawJoystick(ctx) {
+    const { baseX, baseY, knobX, knobY } = this._joystick;
+
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle   = '#c8e0ff';
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, 42, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.55;
+    ctx.strokeStyle = '#aaddff';
+    ctx.lineWidth   = 2;
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, 42, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.78;
+    ctx.fillStyle   = '#aaddff';
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, 20, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 1;
+  }
+
   _drawStatus(ctx) {
     const { x, y, w, h } = LAYOUT.status;
     ctx.fillStyle = 'rgba(8, 10, 28, 0.92)';
     ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = COLORS.border;
-    ctx.lineWidth = 1;
+    ctx.lineWidth   = 1;
     ctx.strokeRect(x, y, w, h);
 
     const party = [...this.game.state.party, ...this.game.state.monsters];
@@ -387,15 +497,14 @@ export class WorldScene extends Scene {
       ctx.font = '10px monospace';
       ctx.textAlign = 'left';
       ctx.fillText(member.name, ox, y + 14);
-      // HPバー
-      const barW = 70;
+      const barW    = 70;
       const hpRatio = Math.max(0, member.hp / member.maxHp);
       ctx.fillStyle = '#1a2040';
       ctx.fillRect(ox, y + 20, barW, 8);
       ctx.fillStyle = hpRatio > 0.3 ? COLORS.hp : COLORS.hpLow;
       ctx.fillRect(ox, y + 20, Math.floor(barW * hpRatio), 8);
       ctx.strokeStyle = COLORS.border;
-      ctx.lineWidth = 1;
+      ctx.lineWidth   = 1;
       ctx.strokeRect(ox, y + 20, barW, 8);
       ctx.fillStyle = COLORS.text;
       ctx.font = '10px monospace';
@@ -403,7 +512,6 @@ export class WorldScene extends Scene {
       ox += 90;
     }
 
-    // マップ名
     const mapName = this.map.mapData?.name || '';
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '10px monospace';
@@ -414,19 +522,17 @@ export class WorldScene extends Scene {
   _drawMenuBtn(ctx) {
     const { y, w, h } = LAYOUT.ctrl;
 
-    // 背景
     ctx.fillStyle = 'rgba(4, 6, 18, 0.88)';
     ctx.fillRect(0, y, w, h);
     ctx.strokeStyle = '#151a2e';
-    ctx.lineWidth = 1;
+    ctx.lineWidth   = 1;
     ctx.strokeRect(0, y, w, 1);
 
-    // ☰ メニューボタン（右側）
     const bx = w - 96, by = y + 16, bw = 86, bh = 48;
     ctx.fillStyle = '#12183a';
     ctx.fillRect(bx, by, bw, bh);
     ctx.strokeStyle = '#2a3a60';
-    ctx.lineWidth = 1;
+    ctx.lineWidth   = 1;
     ctx.strokeRect(bx, by, bw, bh);
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '13px monospace';
@@ -436,10 +542,9 @@ export class WorldScene extends Scene {
     ctx.font = '9px monospace';
     ctx.fillText('[M / Esc]', bx + bw / 2, by + 38);
 
-    // ヒント
     ctx.fillStyle = '#1e2840';
     ctx.font = '10px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('タップ: 移動 / NPC話す', 10, y + h / 2 + 4);
+    ctx.fillText('スライド: 移動  タップ: 話す/石', 10, y + h / 2 + 4);
   }
 }
