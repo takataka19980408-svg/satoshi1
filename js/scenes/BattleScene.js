@@ -38,6 +38,7 @@ export class BattleScene extends Scene {
     this._enemyHp   = 0;
     this._enemyShake= 0;
     this._skillMenu = false;
+    this._tapHandler = null;
   }
 
   enter({ enemyId, isBoss = false, onWin = null } = {}) {
@@ -76,13 +77,76 @@ export class BattleScene extends Scene {
     const bgm = isBoss ? 'boss' : 'battle';
     this.game.audio.playBgm(bgm);
 
+    this._tapHandler = (e) => {
+      if (e.type === 'touchstart') e.preventDefault();
+      const src  = e.changedTouches ? e.changedTouches[0] : e;
+      const rect = this.game.canvas.getBoundingClientRect();
+      const lx   = (src.clientX - rect.left) / this.game.scale;
+      const ly   = (src.clientY - rect.top)  / this.game.scale;
+      this._handleBattleTap(lx, ly);
+    };
+    this.game.canvas.addEventListener('touchstart', this._tapHandler, { passive: false });
+    this.game.canvas.addEventListener('mousedown',  this._tapHandler);
+
     this._pushMsg(`${this._enemy.name}があらわれた！`, () => {
       this._state     = ST.SELECT_CMD;
       this._inputLock = false;
     });
   }
 
-  exit() {}
+  exit() {
+    if (this._tapHandler) {
+      this.game.canvas.removeEventListener('touchstart', this._tapHandler);
+      this.game.canvas.removeEventListener('mousedown',  this._tapHandler);
+      this._tapHandler = null;
+    }
+  }
+
+  _handleBattleTap(lx, ly) {
+    // メッセージをタップでスキップ
+    if (this._msgTimer > 0) {
+      this._msgTimer = 0;
+      const done = this._msgQueue.shift();
+      if (done?.onDone) done.onDone();
+      if (this._msgQueue.length > 0) this._showNextMsg();
+      else this._inputLock = false;
+      return;
+    }
+    if (this._inputLock) return;
+
+    // 勝利・敗北画面でタップしてつづける
+    if (this._state === ST.WIN)  { this._finishBattle(true);  return; }
+    if (this._state === ST.LOSE) { this._finishBattle(false); return; }
+
+    // コマンドメニュー タップ選択
+    if (this._state === ST.SELECT_CMD) {
+      const cw = 330, ch = 100;
+      const cx = CANVAS_W / 2 - cw / 2;
+      const my = 400;
+      if (lx >= cx && lx <= cx + cw && ly >= my && ly <= my + ch) {
+        const col = lx >= cx + cw / 2 ? 1 : 0;
+        const row = ly >= my + ch / 2  ? 1 : 0;
+        this._cursor = row * 2 + col;
+        this.game.audio.playSfx('confirm');
+        switch (this._cursor) {
+          case 0: this._doPlayerAttack(); break;
+          case 1: this._openSkillMenu();  break;
+          case 2: this._doItem();         break;
+          case 3: this._doRun();          break;
+        }
+        this._cursor = 0;
+      }
+      return;
+    }
+
+    // スキルメニュー タップでキャンセル
+    if (this._state === ST.SELECT_SKILL) {
+      this._skillMenu = false;
+      this._state = ST.SELECT_CMD;
+      this._cursor = 0;
+      this.game.audio.playSfx('cancel');
+    }
+  }
 
   _pushMsg(text, onDone = null) {
     this._msgQueue.push({ text, onDone });
@@ -318,7 +382,7 @@ export class BattleScene extends Scene {
 
   _loseBattle() {
     this.game.audio.playSfx('cancel');
-    this._pushMsg('たおれてしまった...', () => {
+    this._pushMsg('目の前が暗くなった……', () => {
       this._state = ST.LOSE;
       this._inputLock = false;
     });
@@ -331,12 +395,15 @@ export class BattleScene extends Scene {
       this.game.changeScene('world');
       if (world) world.returnFromBattle(won, onWin);
     } else {
-      // 全滅 → タイトルへ
-      this.game.state.party.forEach(m => { m.hp = Math.max(1, Math.floor(m.maxHp / 4)); });
+      // 全滅 → HP全回復してサトシの家へ
+      this.game.state.party.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp || 0; });
+      this.game.state.monsters.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp || 0; });
       this.game.state.currentMap = 'satoshi_house';
       this.game.state.playerX   = 6;
       this.game.state.playerY   = 7;
+      const world = this.game._scenes?.world;
       this.game.changeScene('world', { map: 'satoshi_house', x: 6, y: 7 });
+      if (world) world._encounterCooldown = 4;
     }
   }
 
@@ -777,7 +844,7 @@ export class BattleScene extends Scene {
     const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
     ctx.globalAlpha = blink;
     ctx.fillStyle = COLORS.accent;
-    ctx.fillText('Aボタンでつづける', CANVAS_W / 2, 490);
+    ctx.fillText('タップでつづける', CANVAS_W / 2, 490);
     ctx.globalAlpha = 1;
   }
 
@@ -790,12 +857,12 @@ export class BattleScene extends Scene {
     ctx.fillStyle = '#cc4444';
     ctx.font = 'bold 16px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('たおれてしまった...', CANVAS_W / 2, 430);
+    ctx.fillText('目の前が暗くなった……', CANVAS_W / 2, 430);
     const blink = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
     ctx.globalAlpha = blink;
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '13px monospace';
-    ctx.fillText('Aボタンでつづける', CANVAS_W / 2, 466);
+    ctx.fillText('タップでつづける', CANVAS_W / 2, 466);
     ctx.globalAlpha = 1;
   }
 }

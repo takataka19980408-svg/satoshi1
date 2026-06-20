@@ -4,24 +4,24 @@ export const TILE_SIZE = 32;
 
 export const LAYOUT = {
   status: { x: 0, y: 0,   w: 360, h: 44  },
-  game:   { x: 0, y: 44,  w: 360, h: 352 },
-  msg:    { x: 0, y: 396, w: 360, h: 84  },
-  ctrl:   { x: 0, y: 480, w: 360, h: 160 },
+  game:   { x: 0, y: 44,  w: 360, h: 436 },
+  msg:    { x: 0, y: 480, w: 360, h: 80  },
+  ctrl:   { x: 0, y: 560, w: 360, h: 80  },
 };
 
 export const DPAD = {
-  cx: 80, cy: 560,
-  up:    { x: 80,  y: 508 },
-  down:  { x: 80,  y: 612 },
-  left:  { x: 28,  y: 560 },
-  right: { x: 132, y: 560 },
-  size: 38,
+  cx: 80, cy: 600,
+  up:    { x: 80,  y: 565 },
+  down:  { x: 80,  y: 635 },
+  left:  { x: 28,  y: 600 },
+  right: { x: 132, y: 600 },
+  size: 36,
 };
 
 export const BTNS = {
-  a:    { x: 302, y: 528, r: 28 },
-  b:    { x: 255, y: 575, r: 22 },
-  menu: { x: 185, y: 528, r: 18 },
+  a:    { x: 302, y: 575, r: 24 },
+  b:    { x: 248, y: 608, r: 20 },
+  menu: { x: 58,  y: 590, r: 18 },
 };
 
 export const COLORS = {

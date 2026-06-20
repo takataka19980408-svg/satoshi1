@@ -14,7 +14,12 @@ export class EventSystem {
   }
 
   load(eventData) {
-    this._events = eventData || {};
+    this._events        = eventData || {};
+    this._running       = false;
+    this._waiting       = false;
+    this._waitTimer     = 0;
+    this._currentEventId  = null;
+    this._pendingWinEvent = null;
   }
 
   // フラグ確認

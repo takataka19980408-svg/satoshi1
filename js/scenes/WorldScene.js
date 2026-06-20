@@ -1,5 +1,5 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, LAYOUT, COLORS, DPAD, BTNS } from '../constants.js';
+import { CANVAS_W, LAYOUT, COLORS } from '../constants.js';
 import { MapSystem }    from '../systems/MapSystem.js';
 import { DialogSystem } from '../systems/DialogSystem.js';
 import { EventSystem }  from '../systems/EventSystem.js';
@@ -21,12 +21,40 @@ export class WorldScene extends Scene {
     this._inputLock     = false;
     this._initialized   = false;
     this._encounterCooldown = 0;
+    this._tapHandler    = null;
+    this._tapEndHandler = null;
+    this._tapDir        = null;
 
     this.player.onStep(() => this._onPlayerStep());
   }
 
   async enter(params = {}) {
     this._inputLock = true;
+
+    // タッチハンドラ登録（再登録前にクリア）
+    if (this._tapHandler) {
+      this.game.canvas.removeEventListener('touchstart',  this._tapHandler);
+      this.game.canvas.removeEventListener('mousedown',   this._tapHandler);
+      this.game.canvas.removeEventListener('touchend',    this._tapEndHandler);
+      this.game.canvas.removeEventListener('touchcancel', this._tapEndHandler);
+      this.game.canvas.removeEventListener('mouseup',     this._tapEndHandler);
+    }
+    this._tapDir = null;
+    this._tapHandler = (e) => {
+      if (e.type === 'touchstart') e.preventDefault();
+      const src  = e.changedTouches ? e.changedTouches[0] : e;
+      const rect = this.game.canvas.getBoundingClientRect();
+      const lx   = (src.clientX - rect.left) / this.game.scale;
+      const ly   = (src.clientY - rect.top)  / this.game.scale;
+      this._handleWorldTap(lx, ly);
+    };
+    this._tapEndHandler = () => { this._tapDir = null; };
+    this.game.canvas.addEventListener('touchstart',  this._tapHandler, { passive: false });
+    this.game.canvas.addEventListener('mousedown',   this._tapHandler);
+    this.game.canvas.addEventListener('touchend',    this._tapEndHandler);
+    this.game.canvas.addEventListener('touchcancel', this._tapEndHandler);
+    this.game.canvas.addEventListener('mouseup',     this._tapEndHandler);
+
     const mapId = params.map || this.game.state.currentMap || 'satoshi_house';
     await this._loadMap(mapId);
 
@@ -68,6 +96,15 @@ export class WorldScene extends Scene {
     this.game.state.playerX   = this.player.tileX;
     this.game.state.playerY   = this.player.tileY;
     this.game.state.playerDir = this.player.dir;
+    if (this._tapHandler) {
+      this.game.canvas.removeEventListener('touchstart',  this._tapHandler);
+      this.game.canvas.removeEventListener('mousedown',   this._tapHandler);
+      this.game.canvas.removeEventListener('touchend',    this._tapEndHandler);
+      this.game.canvas.removeEventListener('touchcancel', this._tapEndHandler);
+      this.game.canvas.removeEventListener('mouseup',     this._tapEndHandler);
+      this._tapHandler    = null;
+      this._tapEndHandler = null;
+    }
   }
 
   update(dt) {
@@ -105,12 +142,73 @@ export class WorldScene extends Scene {
     if (inp.isDown('down'))  dy =  1;
     if (inp.isDown('left'))  dx = -1;
     if (inp.isDown('right')) dx =  1;
+
+    // タッチ方向（キーボード入力がなければ使用）
+    if (dx === 0 && dy === 0 && this._tapDir) {
+      dx = this._tapDir.dx;
+      dy = this._tapDir.dy;
+    }
+
     if (dx === 0 && dy === 0) return;
 
     // 斜め移動は禁止（縦優先）
     if (dy !== 0) dx = 0;
 
     this.player.tryMove(dx, dy, this.map);
+  }
+
+  _handleWorldTap(lx, ly) {
+    // ダイアログ中はどこをタップしても次へ進める
+    if (this.dialog.active) {
+      this.events.onConfirm();
+      return;
+    }
+
+    if (this._inputLock || this.events.isRunning) return;
+
+    // コントローラエリア（☰ メニューボタン）
+    if (ly >= LAYOUT.ctrl.y) {
+      if (lx >= CANVAS_W - 96 && !this._inputLock) {
+        this.game.audio.playSfx('cursor');
+        this.game.changeScene('menu', { returnTo: 'world' });
+      }
+      return;
+    }
+
+    // メッセージエリアはスキップ
+    if (ly >= LAYOUT.msg.y) return;
+
+    // ゲームエリア（タップで方向移動）
+    if (ly >= LAYOUT.game.y && ly < LAYOUT.game.y + LAYOUT.game.h) {
+      const playerScreenX = this.player.px - this.map.camX;
+      const playerScreenY = LAYOUT.game.y + this.player.py - this.map.camY;
+      const dX = lx - playerScreenX;
+      const dY = ly - playerScreenY;
+
+      // プレイヤーの真上タップは無視
+      if (Math.abs(dX) < 10 && Math.abs(dY) < 10) return;
+
+      let dx = 0, dy = 0;
+      if (Math.abs(dX) > Math.abs(dY)) {
+        dx = dX > 0 ? 1 : -1;
+      } else {
+        dy = dY > 0 ? 1 : -1;
+      }
+
+      // 前方にNPCがいれば話しかける
+      if (!this.player.moving) {
+        const tx = this.player.tileX + dx;
+        const ty = this.player.tileY + dy;
+        const npc = this.map.getNpcAt(tx, ty);
+        if (npc) {
+          this.player.dir = dx === 1 ? 'right' : dx === -1 ? 'left' : dy === 1 ? 'down' : 'up';
+          const npcEntity = this.npcs.find(n => n.id === npc.id);
+          if (npcEntity) { this._talkToNpc(npcEntity); return; }
+        }
+      }
+
+      this._tapDir = { dx, dy };
+    }
   }
 
   _handleDialogInput() {
@@ -262,8 +360,8 @@ export class WorldScene extends Scene {
     // メッセージウィンドウ
     this.dialog.render(ctx);
 
-    // コントローラ
-    this._drawController(ctx);
+    // メニューボタン
+    this._drawMenuBtn(ctx);
 
     // フラッシュエフェクト
     if (this._flashTimer > 0 && this._flashColor) {
@@ -313,61 +411,35 @@ export class WorldScene extends Scene {
     ctx.fillText(mapName, CANVAS_W - 8, y + 14);
   }
 
-  _drawController(ctx) {
-    const { x, y, w, h } = LAYOUT.ctrl;
-    ctx.fillStyle = 'rgba(4, 6, 18, 0.85)';
-    ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = '#1a2040';
+  _drawMenuBtn(ctx) {
+    const { y, w, h } = LAYOUT.ctrl;
+
+    // 背景
+    ctx.fillStyle = 'rgba(4, 6, 18, 0.88)';
+    ctx.fillRect(0, y, w, h);
+    ctx.strokeStyle = '#151a2e';
     ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, w, 1);
+    ctx.strokeRect(0, y, w, 1);
 
-    // Dパッド
-    this._drawDpad(ctx);
-    // アクションボタン
-    this._drawActionBtns(ctx);
-  }
+    // ☰ メニューボタン（右側）
+    const bx = w - 96, by = y + 16, bw = 86, bh = 48;
+    ctx.fillStyle = '#12183a';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = '#2a3a60';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, bw, bh);
+    ctx.fillStyle = COLORS.textDim;
+    ctx.font = '13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('☰ メニュー', bx + bw / 2, by + 20);
+    ctx.fillStyle = '#1e2a44';
+    ctx.font = '9px monospace';
+    ctx.fillText('[M / Esc]', bx + bw / 2, by + 38);
 
-  _drawDpad(ctx) {
-    const dirs = [
-      { key: 'up',    lbl: '↑', ...DPAD.up    },
-      { key: 'down',  lbl: '↓', ...DPAD.down  },
-      { key: 'left',  lbl: '←', ...DPAD.left  },
-      { key: 'right', lbl: '→', ...DPAD.right },
-    ];
-    const s = DPAD.size;
-    for (const d of dirs) {
-      const held = this.game.input.isDown(d.key);
-      ctx.fillStyle   = held ? '#304070' : '#181828';
-      ctx.strokeStyle = '#2a3a60';
-      ctx.lineWidth   = 1;
-      ctx.fillRect(d.x - s/2, d.y - s/2, s, s);
-      ctx.strokeRect(d.x - s/2, d.y - s/2, s, s);
-      ctx.fillStyle   = held ? COLORS.accent : COLORS.textDim;
-      ctx.font        = '16px monospace';
-      ctx.textAlign   = 'center';
-      ctx.fillText(d.lbl, d.x, d.y + 6);
-    }
-  }
-
-  _drawActionBtns(ctx) {
-    const btns = [
-      { key: 'a',    lbl: 'A',  ...BTNS.a    },
-      { key: 'b',    lbl: 'B',  ...BTNS.b    },
-      { key: 'menu', lbl: '☰', ...BTNS.menu },
-    ];
-    for (const b of btns) {
-      const held = this.game.input.isDown(b.key);
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fillStyle   = held ? '#304070' : '#181828';
-      ctx.fill();
-      ctx.strokeStyle = '#2a3a60';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-      ctx.fillStyle   = held ? COLORS.accent : COLORS.textDim;
-      ctx.font        = b.key === 'menu' ? '14px monospace' : 'bold 14px monospace';
-      ctx.textAlign   = 'center';
-      ctx.fillText(b.lbl, b.x, b.y + 5);
-    }
+    // ヒント
+    ctx.fillStyle = '#1e2840';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('タップ: 移動 / NPC話す', 10, y + h / 2 + 4);
   }
 }

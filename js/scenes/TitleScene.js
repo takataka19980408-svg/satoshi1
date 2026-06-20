@@ -1,5 +1,5 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, CANVAS_H, COLORS, DPAD, BTNS } from '../constants.js';
+import { CANVAS_W, CANVAS_H, COLORS } from '../constants.js';
 
 export class TitleScene extends Scene {
   constructor(game) {
@@ -53,7 +53,7 @@ export class TitleScene extends Scene {
   _handleTap(lx, ly) {
     if (this._inputLock) return;
     const mx = CANVAS_W / 2;
-    const my = 320;
+    const my = 278;
     for (let i = 0; i < 2; i++) {
       const ty = my + i * 36;
       if (ly >= ty - 20 && ly <= ty + 16 && lx >= mx - 90 && lx <= mx + 90) {
@@ -148,24 +148,21 @@ export class TitleScene extends Scene {
     // 影
     ctx.fillStyle = '#0a1838';
     ctx.font = 'bold 30px monospace';
-    ctx.fillText('サトシと', CANVAS_W / 2 + 2, 214);
-    ctx.fillText('奇妙な石', CANVAS_W / 2 + 2, 252);
+    ctx.fillText('サトシと', CANVAS_W / 2 + 2, 174);
+    ctx.fillText('奇妙な石', CANVAS_W / 2 + 2, 212);
     // 本体
     ctx.fillStyle = '#7ab8ff';
     ctx.font = 'bold 30px monospace';
-    ctx.fillText('サトシと', CANVAS_W / 2, 212);
-    ctx.fillText('奇妙な石', CANVAS_W / 2, 250);
+    ctx.fillText('サトシと', CANVAS_W / 2, 172);
+    ctx.fillText('奇妙な石', CANVAS_W / 2, 210);
 
     // サブタイトル
     ctx.fillStyle = '#405888';
     ctx.font = '11px monospace';
-    ctx.fillText('Chapter I  星の落ちた森', CANVAS_W / 2, 274);
+    ctx.fillText('Chapter I  星の落ちた森', CANVAS_W / 2, 234);
 
     // メニュー
     this._drawMenu(ctx);
-
-    // コントローラ
-    this._drawController(ctx);
 
     // バージョン
     ctx.fillStyle = '#253050';
@@ -175,7 +172,7 @@ export class TitleScene extends Scene {
 
   _drawTitleStone(ctx) {
     const cx = CANVAS_W / 2;
-    const cy = 128;
+    const cy = 88;
     const t  = this._starTimer;
 
     // 外周オーラ（グロー効果）
@@ -233,7 +230,7 @@ export class TitleScene extends Scene {
   _drawMenu(ctx) {
     const items = ['ニューゲーム', 'つづきから'];
     const mx = CANVAS_W / 2;
-    const my = 320;
+    const my = 278;
 
     ctx.textAlign = 'center';
     items.forEach((item, i) => {
@@ -271,53 +268,4 @@ export class TitleScene extends Scene {
     ctx.fillText('↑↓ で選ぶ  A / タップ で決定', mx, my + 76);
   }
 
-  _drawController(ctx) {
-    // 下部コントローラエリアを薄く描画
-    ctx.fillStyle = 'rgba(4, 5, 16, 0.7)';
-    ctx.fillRect(0, 480, CANVAS_W, 160);
-    ctx.strokeStyle = '#101828';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 480, CANVAS_W, 1);
-
-    // Dパッド（シンプル版）
-    const dirs = [
-      { key: 'up',    lbl: '↑', ...DPAD.up    },
-      { key: 'down',  lbl: '↓', ...DPAD.down  },
-      { key: 'left',  lbl: '←', ...DPAD.left  },
-      { key: 'right', lbl: '→', ...DPAD.right },
-    ];
-    const s = DPAD.size;
-    for (const d of dirs) {
-      const held = this.game.input.isDown(d.key);
-      ctx.fillStyle   = held ? '#304070' : '#0e1020';
-      ctx.strokeStyle = '#1e2840';
-      ctx.lineWidth   = 1;
-      ctx.fillRect(d.x - s/2, d.y - s/2, s, s);
-      ctx.strokeRect(d.x - s/2, d.y - s/2, s, s);
-      ctx.fillStyle = held ? COLORS.accent : '#405070';
-      ctx.font      = '16px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(d.lbl, d.x, d.y + 6);
-    }
-
-    // アクションボタン
-    const btns = [
-      { key: 'a', lbl: 'A', ...BTNS.a },
-      { key: 'b', lbl: 'B', ...BTNS.b },
-    ];
-    for (const b of btns) {
-      const held = this.game.input.isDown(b.key);
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fillStyle   = held ? '#304070' : '#0e1020';
-      ctx.fill();
-      ctx.strokeStyle = '#1e2840';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-      ctx.fillStyle = held ? COLORS.accent : '#405070';
-      ctx.font      = 'bold 14px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(b.lbl, b.x, b.y + 5);
-    }
-  }
 }

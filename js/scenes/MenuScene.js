@@ -1,5 +1,5 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, CANVAS_H, COLORS, DPAD, BTNS } from '../constants.js';
+import { CANVAS_W, CANVAS_H, LAYOUT, COLORS } from '../constants.js';
 
 const TABS = ['ステータス', 'モンスター', 'アイテム', 'セーブ'];
 const CONTENT_TOP = 68;
@@ -174,8 +174,16 @@ export class MenuScene extends Scene {
     }
     ctx.restore();
 
-    // コントローラ
-    this._drawController(ctx);
+    // コントローラエリア（ヒントのみ）
+    ctx.fillStyle = 'rgba(4, 6, 18, 0.88)';
+    ctx.fillRect(0, LAYOUT.ctrl.y, CANVAS_W, LAYOUT.ctrl.h);
+    ctx.strokeStyle = '#151a2e';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, LAYOUT.ctrl.y, CANVAS_W, 1);
+    ctx.fillStyle = '#253050';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('← → でタブ切替  ×ボタン or タップでとじる', CANVAS_W / 2, LAYOUT.ctrl.y + LAYOUT.ctrl.h / 2 + 4);
   }
 
   _drawStatus(ctx) {
@@ -318,60 +326,4 @@ export class MenuScene extends Scene {
     }
   }
 
-  _drawController(ctx) {
-    // コントローラ背景
-    ctx.fillStyle = 'rgba(4, 5, 16, 0.85)';
-    ctx.fillRect(0, 480, CANVAS_W, 160);
-    ctx.strokeStyle = '#101828';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 480, CANVAS_W, 1);
-
-    // Dパッド
-    const dirs = [
-      { key: 'up',    lbl: '↑', ...DPAD.up    },
-      { key: 'down',  lbl: '↓', ...DPAD.down  },
-      { key: 'left',  lbl: '←', ...DPAD.left  },
-      { key: 'right', lbl: '→', ...DPAD.right },
-    ];
-    const s = DPAD.size;
-    for (const d of dirs) {
-      const held = this.game.input.isDown(d.key);
-      ctx.fillStyle   = held ? '#304070' : '#0e1020';
-      ctx.strokeStyle = '#1e2840';
-      ctx.lineWidth   = 1;
-      ctx.fillRect(d.x - s / 2, d.y - s / 2, s, s);
-      ctx.strokeRect(d.x - s / 2, d.y - s / 2, s, s);
-      ctx.fillStyle = held ? COLORS.accent : '#405070';
-      ctx.font      = '16px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(d.lbl, d.x, d.y + 6);
-    }
-
-    // アクションボタン
-    const btns = [
-      { key: 'a',    lbl: 'A', ...BTNS.a    },
-      { key: 'b',    lbl: 'B', ...BTNS.b    },
-      { key: 'menu', lbl: 'M', ...BTNS.menu },
-    ];
-    for (const b of btns) {
-      const held = this.game.input.isDown(b.key);
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fillStyle   = held ? '#304070' : '#0e1020';
-      ctx.fill();
-      ctx.strokeStyle = '#1e2840';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-      ctx.fillStyle = held ? COLORS.accent : '#405070';
-      ctx.font      = `bold ${b.r > 20 ? 14 : 12}px monospace`;
-      ctx.textAlign = 'center';
-      ctx.fillText(b.lbl, b.x, b.y + 5);
-    }
-
-    // ヒント
-    ctx.fillStyle = '#253050';
-    ctx.font = '10px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('←→ タブ切替  B / × : とじる', CANVAS_W / 2, 626);
-  }
 }
