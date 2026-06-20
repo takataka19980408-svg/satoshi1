@@ -9,7 +9,8 @@ export class EventSystem {
     this._stepIndex = 0;
     this._waiting   = false;
     this._waitTimer = 0;
-    this._currentEventId = null;
+    this._currentEventId  = null;
+    this._pendingWinEvent = null;
   }
 
   load(eventData) {
@@ -119,7 +120,11 @@ export class EventSystem {
         break;
 
       case 'dialog':
-        w.dialog.show(step.text, step.speaker || '');
+        if (step.choices) {
+          w.dialog.showChoice(step.text, step.choices, step.speaker || '');
+        } else {
+          w.dialog.show(step.text, step.speaker || '');
+        }
         this._waiting = true;
         break;
 
@@ -188,8 +193,7 @@ export class EventSystem {
         break;
 
       case 'battle':
-        g.state._pendingBattle = step.enemyId;
-        g.state._returnEvent   = step.onWin;
+        this._pendingWinEvent = step.onWin || null;
         g.changeScene('battle', { enemyId: step.enemyId, onWin: step.onWin, isBoss: step.isBoss });
         this._waiting = true;
         break;
@@ -221,6 +225,8 @@ export class EventSystem {
 
   // バトル終了後に呼ばれる
   resumeAfterBattle(won) {
+    const pendingWin = this._pendingWinEvent;
+    this._pendingWinEvent = null;
     if (!won) {
       this._finish();
       return;
@@ -228,5 +234,9 @@ export class EventSystem {
     this._running = true;
     this._waiting = false;
     this._nextStep();
+    // バトルステップが最後だった場合、onWinイベントを起動する
+    if (!this._running && pendingWin) {
+      this.trigger(pendingWin);
+    }
   }
 }

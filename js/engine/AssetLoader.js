@@ -5,14 +5,19 @@ export class AssetLoader {
 
   async loadJSON(path) {
     if (this._cache[path]) return this._cache[path];
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`ロード失敗: ${path}`);
-    const data = await res.json();
-    this._cache[path] = data;
-    return data;
+    try {
+      const res = await fetch(path);
+      if (!res.ok) { console.warn(`AssetLoader: ${path} → ${res.status}`); return null; }
+      const data = await res.json();
+      this._cache[path] = data;
+      return data;
+    } catch (e) {
+      console.warn(`AssetLoader: ${path} の読み込みに失敗`, e);
+      return null;
+    }
   }
 
-  // 必要なデータを一括ロード
+  // 必要なデータを一括ロード（個別の失敗は無視して続行）
   async loadAll() {
     const paths = [
       'data/characters/party.json',
@@ -21,7 +26,7 @@ export class AssetLoader {
       'data/npcs/chapter1.json',
       'data/events/chapter1.json',
     ];
-    await Promise.all(paths.map(p => this.loadJSON(p)));
+    await Promise.allSettled(paths.map(p => this.loadJSON(p)));
   }
 
   async loadMap(mapId) {
