@@ -57,8 +57,9 @@ export class MenuScene extends Scene {
       }
     }
 
-    // とじるボタン（ヘッダ右上）
-    if (lx >= CANVAS_W - 70 && lx <= CANVAS_W - 4 && ly >= 6 && ly <= 36) {
+    // とじるボタン（ヘッダ右上 or ctrl下部）
+    if ((lx >= CANVAS_W - 86 && ly >= 4 && ly <= 44) ||
+        (ly >= LAYOUT.ctrl.y)) {
       this.game.audio.playSfx('cancel');
       this.game.changeScene(this._returnTo);
       return;
@@ -120,17 +121,17 @@ export class MenuScene extends Scene {
     ctx.textAlign = 'center';
     ctx.fillText('メニュー', CANVAS_W / 2 - 30, 28);
 
-    // とじるボタン
-    const bx = CANVAS_W - 66, by = 8;
-    ctx.fillStyle = '#1a2040';
-    ctx.fillRect(bx, by, 62, 28);
-    ctx.strokeStyle = COLORS.border;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(bx, by, 62, 28);
-    ctx.fillStyle = '#c07070';
-    ctx.font = '12px monospace';
+    // とじるボタン（大きく）
+    const bx = CANVAS_W - 84, by = 4;
+    ctx.fillStyle = '#2a1828';
+    ctx.fillRect(bx, by, 80, 36);
+    ctx.strokeStyle = '#c07070';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx, by, 80, 36);
+    ctx.fillStyle = '#e08888';
+    ctx.font = 'bold 13px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('× とじる', bx + 31, by + 18);
+    ctx.fillText('× とじる', bx + 40, by + 23);
 
     // タブ
     TABS.forEach((t, i) => {
@@ -180,10 +181,20 @@ export class MenuScene extends Scene {
     ctx.strokeStyle = '#151a2e';
     ctx.lineWidth = 1;
     ctx.strokeRect(0, LAYOUT.ctrl.y, CANVAS_W, 1);
-    ctx.fillStyle = '#253050';
-    ctx.font = '10px monospace';
+    // 「もどる」大ボタン
+    const cb = CANVAS_W / 2 - 80, cy = LAYOUT.ctrl.y + 8;
+    ctx.fillStyle = '#2a1828';
+    ctx.fillRect(cb, cy, 160, 50);
+    ctx.strokeStyle = '#c07070';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(cb, cy, 160, 50);
+    ctx.fillStyle = '#e08888';
+    ctx.font = 'bold 15px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('← → でタブ切替  ×ボタン or タップでとじる', CANVAS_W / 2, LAYOUT.ctrl.y + LAYOUT.ctrl.h / 2 + 4);
+    ctx.fillText('× もどる', CANVAS_W / 2, cy + 22);
+    ctx.fillStyle = '#705060';
+    ctx.font = '10px monospace';
+    ctx.fillText('[B / Esc]', CANVAS_W / 2, cy + 38);
   }
 
   _drawStatus(ctx) {

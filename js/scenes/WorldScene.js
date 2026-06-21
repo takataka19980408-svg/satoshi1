@@ -214,6 +214,7 @@ export class WorldScene extends Scene {
   }
 
   _handleTouchEnd() {
+    if (!this._joystick.started) return;
     const wasActive = this._joystick.active;
     const tapX = this._joystick.tapX;
     const tapY = this._joystick.tapY;
