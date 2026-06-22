@@ -1,0 +1,142 @@
+{
+  "yakuba_arrive": {
+    "condition": { "flagNotSet": "yakuba_arrived" },
+    "steps": [
+      { "type": "setFlag", "flag": "yakuba_arrived" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "ヤクバの宿場。\n旅人が行き交う、小さな町。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（石が、ポケットの中で\nかすかに光った）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "ril_meet": {
+    "condition": { "flagSet": "chapter1_ended", "flagNotSet": "ril_met" },
+    "steps": [
+      { "type": "setFlag", "flag": "ril_met" },
+      { "type": "npcFace", "npcId": "ril", "dir": "right" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "あ、旅人さん？\nここに来るのは珍しいね。", "speaker": "リル" },
+      { "type": "wait", "duration": 200 },
+      { "type": "dialog", "text": "（赤い短髪の少女が、\nこちらを見ていた）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "あたしはリル。傭兵見習い。\n王都の方に用があってここに寄ってた。", "speaker": "リル" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "その石——\n変な光り方してるね。", "speaker": "リル" },
+      { "type": "wait", "duration": 500 },
+      { "type": "shake", "duration": 700, "intensity": 6 },
+      { "type": "sfx", "id": "damage" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "！！", "speaker": "リル" },
+      { "type": "wait", "duration": 200 },
+      { "type": "dialog", "text": "黒曜団だ！\n宿を囲まれてる！", "speaker": "リル" },
+      { "type": "faceDir", "dir": "up" },
+      { "type": "bgm", "id": "boss" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（黒い鎧の兵士が、\n入口から踏み込んでくる）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "石を渡せ。\n大人しくすれば傷はつけない。", "speaker": "黒曜団兵士" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "やらせない！", "speaker": "リル" },
+      { "type": "battle", "enemyId": "obsidian_soldier", "isBoss": false, "onWin": "ril_join" }
+    ]
+  },
+  "ril_join": {
+    "steps": [
+      { "type": "bgm", "id": "village" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（兵士たちが、退いた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "やるじゃん。\nその石、ただ者じゃないね。", "speaker": "リル" },
+      { "type": "dialog", "text": "どこへ行くの？", "speaker": "リル" },
+      { "type": "dialog", "text": "王都。賢者エルドに\n会いに行く。", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "あたしも行く。\n同じ方向だし。\nあと——なんか気になる。その石。", "speaker": "リル" },
+      { "type": "wait", "duration": 300 },
+      { "type": "sfx", "id": "item" },
+      { "type": "addMonster", "monsterId": "ril" },
+      { "type": "setFlag", "flag": "ril_joined" },
+      { "type": "dialog", "text": "リルが仲間になった。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（ポケットの中の石が、\n一瞬だけ強く光った）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "mine_enter": {
+    "condition": { "flagNotSet": "mine_entered" },
+    "steps": [
+      { "type": "setFlag", "flag": "mine_entered" },
+      { "type": "bgm", "id": "forest" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "忘れられた坑道。\n黒曜団の拠点になっているらしい。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（空気が重い。\n足元の石が、湿っている）", "speaker": "サトシ" },
+      { "type": "glow", "color": "#1a1520", "duration": 5000 },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "用心して。\n奥に何かいる。", "speaker": "リル" },
+      { "type": "end" }
+    ]
+  },
+  "mine_depth": {
+    "condition": { "flagNotSet": "mine_depth_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "mine_depth_seen" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石が、さっきより強く光っている）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "その石、震えてる？\nこの場所に反応してるのかな。", "speaker": "リル" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（奥から、低い唸り声が聞こえた）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "mine_boss_trigger": {
+    "condition": { "flagNotSet": "mine_boss_defeated" },
+    "steps": [
+      { "type": "shake", "duration": 900, "intensity": 7 },
+      { "type": "sfx", "id": "damage" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "地鳴りがした。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（坑道の奥から、巨大な影が\nゆっくりと動き出した）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "鉱山ゴーレム！\n黒曜団の石魔術で動かされてる！", "speaker": "リル" },
+      { "type": "faceDir", "dir": "up" },
+      { "type": "bgm", "id": "boss" },
+      { "type": "battle", "enemyId": "mine_golem", "isBoss": true, "onWin": "mine_boss_win" }
+    ]
+  },
+  "mine_boss_win": {
+    "steps": [
+      { "type": "bgm", "id": "village" },
+      { "type": "flash", "color": "#886644", "duration": 500 },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "ゴーレムが、崩れた。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "やった。\n黒曜団の拠点、使えなくなったね。", "speaker": "リル" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石が、静かに光っている）", "speaker": "サトシ" },
+      { "type": "setFlag", "flag": "mine_boss_defeated" },
+      { "type": "wait", "duration": 600 },
+      { "type": "teleport", "toMap": "yakuba_town", "toX": 9, "toY": 10 },
+      { "type": "end" }
+    ]
+  },
+  "chapter2_end": {
+    "condition": { "flagSet": "mine_boss_defeated", "flagNotSet": "chapter2_ended" },
+    "steps": [
+      { "type": "setFlag", "flag": "chapter2_ended" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（宿場に戻ると、夕暮れが近かった）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "ね、その石——\n名前、あると思う？", "speaker": "リル" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（サトシは石を見た。\nかすかな光。確かに、何かがある）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "...声は聞こえた。\nでも、名前は知らない。", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "明日、王都へ行こう。\nエルドなら、知ってるはずだよ。", "speaker": "リル" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（石が、また光った。\nうなずくように）", "speaker": "サトシ" },
+      { "type": "save" },
+      { "type": "teleport", "toMap": "royal_capital", "toX": 9, "toY": 16 },
+      { "type": "end" }
+    ]
+  }
+}

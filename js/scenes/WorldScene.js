@@ -126,9 +126,19 @@ export class WorldScene extends Scene {
     this.game.state.currentMap = mapId;
     await this.map.load(mapId);
 
-    const npcDefs   = this.map.mapData?.npcs || [];
-    const npcData   = this.game.loader.get('data/npcs/chapter1.json') || {};
-    const eventData = this.game.loader.get('data/events/chapter1.json') || {};
+    const npcDefs = this.map.mapData?.npcs || [];
+    const npcData = Object.assign(
+      {},
+      this.game.loader.get('data/npcs/chapter1.json') || {},
+      this.game.loader.get('data/npcs/chapter2.json') || {},
+      this.game.loader.get('data/npcs/chapter3.json') || {},
+    );
+    const eventData = Object.assign(
+      {},
+      this.game.loader.get('data/events/chapter1.json') || {},
+      this.game.loader.get('data/events/chapter2.json') || {},
+      this.game.loader.get('data/events/chapter3.json') || {},
+    );
     this.events.load(eventData);
     this.npcs = npcDefs.map(def => new NPC(def, npcData[def.id]));
   }

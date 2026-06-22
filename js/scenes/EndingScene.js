@@ -32,17 +32,31 @@ export class EndingScene extends Scene {
       size: Math.random() * 1.5 + 0.5,
       phase: Math.random() * Math.PI * 2,
     }));
-    this._lines    = [
-      'ミドリ村に静かな夜が来た。',
-      'サトシは石を見つめた。',
-      '青白い光は、まだそこにある。',
-      '',
-      '「返して」',
-      '',
-      '声は繰り返す。',
-      '誰かの声で。',
-      '知らない声で。',
-    ];
+    if (chapter === 3) {
+      this._lines = [
+        '塔の頂。',
+        '星が、近かった。',
+        '',
+        '——死にたいんだ。',
+        '',
+        '声は、澄んでいた。',
+        'ためらいもなく。',
+        'ただ、静かに。',
+        'まっすぐに。',
+      ];
+    } else {
+      this._lines = [
+        'ミドリ村に静かな夜が来た。',
+        'サトシは石を見つめた。',
+        '青白い光は、まだそこにある。',
+        '',
+        '「返して」',
+        '',
+        '声は繰り返す。',
+        '誰かの声で。',
+        '知らない声で。',
+      ];
+    }
     this.game.audio.playBgm('ending');
     this._inputLock = true;
 
@@ -202,14 +216,21 @@ export class EndingScene extends Scene {
     }
     ctx.globalAlpha = 1;
 
+    const chapterMeta = [
+      { num: '第一章', title: '星の落ちた森',  next: '第二章へつづく' },
+      { num: '第二章', title: '黒曜の坑道',    next: '第三章へつづく' },
+      { num: '第三章', title: '白霧の塔',      next: 'つづく' },
+    ];
+    const meta = chapterMeta[(this._chapter - 1)] || chapterMeta[0];
+
     ctx.textAlign = 'center';
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '12px monospace';
-    ctx.fillText('第一章', CANVAS_W / 2, CANVAS_H / 2 - 60);
+    ctx.fillText(meta.num, CANVAS_W / 2, CANVAS_H / 2 - 60);
 
     ctx.fillStyle = COLORS.accent;
     ctx.font = 'bold 22px monospace';
-    ctx.fillText('星の落ちた森', CANVAS_W / 2, CANVAS_H / 2 - 30);
+    ctx.fillText(meta.title, CANVAS_W / 2, CANVAS_H / 2 - 30);
 
     ctx.fillStyle = COLORS.textDim;
     ctx.font = '13px monospace';
@@ -217,7 +238,7 @@ export class EndingScene extends Scene {
 
     ctx.fillStyle = '#303050';
     ctx.font = '11px monospace';
-    ctx.fillText('第二章へつづく', CANVAS_W / 2, CANVAS_H / 2 + 40);
+    ctx.fillText(meta.next, CANVAS_W / 2, CANVAS_H / 2 + 40);
 
     const blink = 0.4 + 0.6 * Math.sin(this._timer * 3);
     ctx.globalAlpha = blink;

@@ -242,8 +242,14 @@ export class EventSystem {
         break;
 
       case 'endChapter':
-        g.changeScene('ending', { chapter: 1 });
+        g.changeScene('ending', { chapter: step.chapter || g.state.chapter || 1 });
         this._finish();
+        break;
+
+      case 'innRest':
+        for (const m of g.state.monsters) { m.hp = m.maxHp; m.mp = m.maxMp || 0; }
+        g.audio.playSfx('item');
+        this._nextStep();
         break;
 
       case 'save':

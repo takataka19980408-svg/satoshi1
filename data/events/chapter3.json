@@ -1,0 +1,111 @@
+{
+  "capital_arrive": {
+    "condition": { "flagNotSet": "capital_arrived" },
+    "steps": [
+      { "type": "setFlag", "flag": "capital_arrived" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "王都ルーネン。\n石造りの城壁が、空まで続いていた。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石が、また光った。\nここに来たくて来たんじゃないような、\nでも来るべき場所だったような）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "賢者エルドは、北の区画にいると\n聞いてたよ。行こう。", "speaker": "リル" },
+      { "type": "end" }
+    ]
+  },
+  "eldo_meet": {
+    "condition": { "flagNotSet": "eldo_met" },
+    "steps": [
+      { "type": "setFlag", "flag": "eldo_met" },
+      { "type": "npcFace", "npcId": "eldo", "dir": "down" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（白い長衣の老人が、\nこちらを静かに見ていた）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "来たか。\nその石を持って。", "speaker": "エルド" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（エルドは石を見た。\n手を伸ばさない。近づかない）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "触れられない。\nこの石は、自分で選んだ者にしか\n渡らない。", "speaker": "エルド" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "この石の名は、アステラという。\n星の時代の、最後の欠片だ。", "speaker": "エルド" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "アステラ...？", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "glow", "color": "#aaddff", "duration": 4000 },
+      { "type": "dialog", "text": "白霧の塔へ行きなさい。\nあの場所で、石が語りかける。", "speaker": "エルド" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（エルドは、言葉を止めた。\n何か、迷っているような顔）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "行ってみなさい。\nお前たちなら、聞いてやれる。", "speaker": "エルド" },
+      { "type": "end" }
+    ]
+  },
+  "tower_enter": {
+    "condition": { "flagNotSet": "tower_entered" },
+    "steps": [
+      { "type": "setFlag", "flag": "tower_entered" },
+      { "type": "bgm", "id": "forest" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "白霧の塔。\n霧の中に建つ、古い石の塔。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石が、手の中で震えている。\n初めて感じる震え方）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "なんか...泣いてるみたい。\nその石。", "speaker": "リル" },
+      { "type": "glow", "color": "#aaddff", "duration": 5000 },
+      { "type": "end" }
+    ]
+  },
+  "tower_climb": {
+    "condition": { "flagNotSet": "tower_climbed" },
+    "steps": [
+      { "type": "setFlag", "flag": "tower_climbed" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（階段を登るほど、霧が濃くなる）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（石が、もう震えていない。\n光が、静かに安定している）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "上から、何か聞こえる？\nあたしにはわからないけど。", "speaker": "リル" },
+      { "type": "end" }
+    ]
+  },
+  "tower_top": {
+    "condition": { "flagNotSet": "tower_top_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "tower_top_seen" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "塔の頂。\n霧の上に、星空が広がっていた。", "speaker": "" },
+      { "type": "wait", "duration": 500 },
+      { "type": "flash", "color": "#aaddff", "duration": 400 },
+      { "type": "glow", "color": "#aaddff", "duration": 7000 },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（石が、手の中で熱くなった）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "...ここ。", "speaker": "???" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（声が、頭に直接響いた。\n「返して」と同じ声だ）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "石が...しゃべった？", "speaker": "リル" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "覚えてる。\nお前は、あの夜、\n私を拾った。", "speaker": "アステラ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（サトシは、石を両手で持った。\n光が、静かに揺れていた）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "あの声、お前だったのか。\n「返して」って——何を返すんだ？", "speaker": "サトシ" },
+      { "type": "wait", "duration": 800 },
+      { "type": "dialog", "text": "ここに在った、私を。\nこの場所から、切り離された\n私を。", "speaker": "アステラ" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（リルが、息を呑む声がした）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 800 },
+      { "type": "blackout", "duration": 1000 },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "...ひとつだけ、聞いていいか。", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "お前は、どうしたい。", "speaker": "サトシ" },
+      { "type": "wait", "duration": 1200 },
+      { "type": "dialog", "text": "死にたいんだ。", "speaker": "アステラ" },
+      { "type": "wait", "duration": 1500 },
+      { "type": "clearBlackout", "duration": 1500 },
+      { "type": "wait", "duration": 900 },
+      { "type": "dialog", "text": "（星が、いつの間にか増えていた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（サトシは、何も言えなかった。\n言葉が、見つからなかった）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（リルも、黙っていた）", "speaker": "サトシ" },
+      { "type": "setFlag", "flag": "astera_truth_seen" },
+      { "type": "save" },
+      { "type": "endChapter", "chapter": 3 }
+    ]
+  }
+}
