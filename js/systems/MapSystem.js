@@ -372,10 +372,6 @@ export class MapSystem {
     };
     const c = palette[npc.sprite] || { body: '#505058', trim: '#707078', hair: '#282828', skin: '#e8b870', pants: '#202030' };
 
-    // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    ctx.fillRect(cx-8, dy+30, 16, 4);
-
     // ===== 輪郭シルエット =====
     ctx.fillStyle = '#04040e';
     ctx.fillRect(cx-7, dy-1, 14, 14);   // 頭
@@ -394,7 +390,7 @@ export class MapSystem {
     ctx.fillStyle = c.pants || '#202030';
     ctx.fillRect(cx-7, dy+22, 5, 8);
     ctx.fillRect(cx+2, dy+22, 5, 8);
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillStyle = '#283050';
     ctx.fillRect(cx-7, dy+22, 2, 7);
     ctx.fillRect(cx+2, dy+22, 2, 7);
 
@@ -414,55 +410,56 @@ export class MapSystem {
     ctx.fillStyle = c.trim;
     ctx.fillRect(cx-6, dy+11, 12, 3);
     // 陰影
-    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.fillStyle = '#1a1630';
     ctx.fillRect(cx+4, dy+11, 2, 12);
     ctx.fillRect(cx-6, dy+11, 2, 12);
 
-    // 首
-    ctx.fillStyle = c.skin;
-    ctx.fillRect(cx-2, dy+8, 4, 5);
+    if (npc.dir === 'up') {
+      // 後ろ向き — 後頭部と髪のみ
+      ctx.fillStyle = c.hair;
+      ctx.fillRect(cx-6, dy, 12, 11);
+      ctx.fillRect(cx-7, dy+2, 3, 8);
+      ctx.fillRect(cx+4, dy+2, 3, 8);
+    } else {
+      // 首
+      ctx.fillStyle = c.skin;
+      ctx.fillRect(cx-2, dy+8, 4, 5);
 
-    // 頭（顔）
-    ctx.fillStyle = c.skin;
-    ctx.fillRect(cx-5, dy+1, 10, 9);
-    // 頬の立体感
-    ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.fillRect(cx-5, dy+1, 2, 9);
-    ctx.fillRect(cx+3, dy+1, 2, 9);
+      // 頭（顔）
+      ctx.fillStyle = c.skin;
+      ctx.fillRect(cx-5, dy+1, 10, 9);
+      ctx.fillStyle = '#d49060';
+      ctx.fillRect(cx-5, dy+1, 2, 9);
+      ctx.fillRect(cx+3, dy+1, 2, 9);
 
-    // 髪
-    ctx.fillStyle = c.hair;
-    ctx.fillRect(cx-6, dy, 12, 4);
-    ctx.fillRect(cx-7, dy+2, 3, 8);
-    ctx.fillRect(cx+4, dy+2, 3, 8);
+      // 髪
+      ctx.fillStyle = c.hair;
+      ctx.fillRect(cx-6, dy, 12, 4);
+      ctx.fillRect(cx-7, dy+2, 3, 8);
+      ctx.fillRect(cx+4, dy+2, 3, 8);
 
-    // 目（大きく、白目あり）
-    ctx.fillStyle = '#080616';
-    ctx.fillRect(cx-4, dy+4, 3, 4);
-    ctx.fillRect(cx+1, dy+4, 3, 4);
-    ctx.fillStyle = '#1a1830';
-    ctx.fillRect(cx-4, dy+4, 3, 3);
-    ctx.fillRect(cx+1, dy+4, 3, 3);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(cx-4, dy+7, 3, 1);  // 白目（下）
-    ctx.fillRect(cx+1, dy+7, 3, 1);
-    ctx.fillRect(cx-4, dy+4, 1, 1);  // ハイライト
-    ctx.fillRect(cx+3, dy+4, 1, 1);
-    // 眉
-    ctx.fillStyle = c.hair;
-    ctx.fillRect(cx-4, dy+3, 3, 1);
-    ctx.fillRect(cx+1, dy+3, 3, 1);
-    // 鼻
-    ctx.fillStyle = 'rgba(0,0,0,0.2)';
-    ctx.fillRect(cx, dy+7, 1, 1);
+      // 目（大きく、白目あり）
+      ctx.fillStyle = '#080616';
+      ctx.fillRect(cx-4, dy+4, 3, 4);
+      ctx.fillRect(cx+1, dy+4, 3, 4);
+      ctx.fillStyle = '#1a1830';
+      ctx.fillRect(cx-4, dy+4, 3, 3);
+      ctx.fillRect(cx+1, dy+4, 3, 3);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cx-4, dy+7, 3, 1);
+      ctx.fillRect(cx+1, dy+7, 3, 1);
+      ctx.fillRect(cx-4, dy+4, 1, 1);
+      ctx.fillRect(cx+3, dy+4, 1, 1);
+      ctx.fillStyle = c.hair;
+      ctx.fillRect(cx-4, dy+3, 3, 1);
+      ctx.fillRect(cx+1, dy+3, 3, 1);
+      ctx.fillStyle = '#b08050';
+      ctx.fillRect(cx, dy+7, 1, 1);
+    }
   }
 
   _drawSatoshi(ctx, dx, dy, dir) {
     const cx = dx + 16;
-
-    // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.32)';
-    ctx.fillRect(cx-10, dy+30, 20, 5);
 
     // ===== 輪郭シルエット =====
     ctx.fillStyle = '#02020a';
@@ -510,7 +507,7 @@ export class MapSystem {
       ctx.fillRect(cx+6, dy+16, 2, 2);
       ctx.fillStyle = '#1e50e8';
       ctx.fillRect(cx-5, dy+11, 10, 11);
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
+      ctx.fillStyle = '#1438b0';
       ctx.fillRect(cx-5, dy+11, 2, 11);
       ctx.fillRect(cx+3, dy+11, 2, 11);
     } else {
@@ -528,7 +525,7 @@ export class MapSystem {
       ctx.fillRect(cx+7, dy+22, 4, 1);
       ctx.fillStyle = '#1e50e8';
       ctx.fillRect(cx-5, dy+11, 10, 11);
-      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillStyle = '#1438b0';
       ctx.fillRect(cx-5, dy+11, 2, 11);
       ctx.fillRect(cx+3, dy+11, 2, 11);
       ctx.fillStyle = '#4070ff';
@@ -540,21 +537,26 @@ export class MapSystem {
     ctx.fillStyle = '#f5c888';
     ctx.fillRect(cx-2, dy+8, 4, 5);
 
-    // ===== 頭（顔）— より大きく丸く =====
-    ctx.fillStyle = '#f5c888';
-    ctx.fillRect(cx-6, dy, 12, 11);
-    // 角を丸める
-    ctx.fillStyle = '#02020a';
-    ctx.fillRect(cx-6, dy, 1, 1);
-    ctx.fillRect(cx+5, dy, 1, 1);
-    // 頬の陰影
-    ctx.fillStyle = '#dba870';
-    ctx.fillRect(cx-6, dy, 2, 11);
-    ctx.fillRect(cx+4, dy, 2, 11);
-    // 頬の赤み（より目立つ）
-    ctx.fillStyle = 'rgba(230,90,70,0.38)';
-    ctx.fillRect(cx-5, dy+6, 3, 3);
-    ctx.fillRect(cx+2, dy+6, 3, 3);
+    // ===== 頭（顔）=====
+    if (dir === 'up') {
+      // 後ろ向き — 後頭部（髪色）
+      ctx.fillStyle = '#0e0a14';
+      ctx.fillRect(cx-6, dy, 12, 11);
+      ctx.fillStyle = '#1a1226';
+      ctx.fillRect(cx-4, dy+2, 8, 6);
+    } else {
+      ctx.fillStyle = '#f5c888';
+      ctx.fillRect(cx-6, dy, 12, 11);
+      ctx.fillStyle = '#02020a';
+      ctx.fillRect(cx-6, dy, 1, 1);
+      ctx.fillRect(cx+5, dy, 1, 1);
+      ctx.fillStyle = '#dba870';
+      ctx.fillRect(cx-6, dy, 2, 11);
+      ctx.fillRect(cx+4, dy, 2, 11);
+      ctx.fillStyle = '#d85040';
+      ctx.fillRect(cx-5, dy+6, 3, 3);
+      ctx.fillRect(cx+2, dy+6, 3, 3);
+    }
 
     // ===== 髪 =====
     ctx.fillStyle = '#0e0a14';
@@ -566,6 +568,25 @@ export class MapSystem {
     ctx.fillStyle = '#261a2e';
     ctx.fillRect(cx, dy-1, 5, 2);
     ctx.fillRect(cx-1, dy, 1, 1);
+
+    // ===== 帽子（赤キャップ）=====
+    ctx.fillStyle = '#c01818';
+    ctx.fillRect(cx-6, dy-7, 13, 7);
+    ctx.fillStyle = '#e02020';
+    ctx.fillRect(cx-5, dy-7, 11, 5);
+    ctx.fillStyle = '#901010';
+    ctx.fillRect(cx-6, dy-2, 13, 1);
+    if (dir === 'up') {
+      ctx.fillStyle = '#901010';
+      ctx.fillRect(cx-5, dy-8, 11, 2);
+    } else {
+      ctx.fillStyle = '#c01818';
+      ctx.fillRect(cx-8, dy-1, 18, 3);
+      ctx.fillStyle = '#901010';
+      ctx.fillRect(cx-8, dy+1, 18, 1);
+    }
+    ctx.fillStyle = '#780c0c';
+    ctx.fillRect(cx-1, dy-8, 2, 1);
 
     // ===== 目・表情（方向別）— 大きくてかわいい =====
     if (dir !== 'up') {
@@ -632,10 +653,6 @@ export class MapSystem {
 
   _drawMofu(ctx, dx, dy) {
     const cx = dx + 16;
-
-    // 足元シャドウ
-    ctx.fillStyle = 'rgba(0,0,0,0.25)';
-    ctx.fillRect(cx-8, dy+28, 16, 4);
 
     // ===== 輪郭シルエット =====
     ctx.fillStyle = '#03030a';
@@ -727,7 +744,7 @@ export class MapSystem {
     ctx.fillRect(cx-6, dy+5, 3, 3);  // 左目 大ハイライト
     ctx.fillRect(cx+1, dy+5, 3, 3);  // 右目 大ハイライト
     // 小ハイライト（下右）
-    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    ctx.fillStyle = '#c8e8c0';
     ctx.fillRect(cx-3, dy+9, 1, 1);
     ctx.fillRect(cx+5, dy+9, 1, 1);
 
@@ -744,7 +761,7 @@ export class MapSystem {
     ctx.fillRect(cx-1, dy+14, 1, 1);
     ctx.fillRect(cx+0, dy+14, 1, 1);
     // ひげ
-    ctx.fillStyle = 'rgba(210,200,190,0.85)';
+    ctx.fillStyle = '#c8c0b4';
     ctx.fillRect(cx-11, dy+11, 4, 1);
     ctx.fillRect(cx+7,  dy+11, 4, 1);
     ctx.fillRect(cx-11, dy+12, 3, 1);

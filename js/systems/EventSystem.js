@@ -187,6 +187,16 @@ export class EventSystem {
         this._nextStep();
         break;
 
+      case 'faceDir':
+        w.playerFace(step.dir);
+        this._nextStep();
+        break;
+
+      case 'npcFace':
+        w.npcFace(step.npcId, step.dir);
+        this._nextStep();
+        break;
+
       case 'flash':
         w.flash(step.color || '#ffffff', step.duration || 300);
         this._waiting = true;

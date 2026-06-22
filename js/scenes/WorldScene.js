@@ -492,6 +492,15 @@ export class WorldScene extends Scene {
     this._glowTimer    = duration / 1000;
   }
 
+  playerFace(dir) {
+    this.player.dir = dir;
+  }
+
+  npcFace(npcId, dir) {
+    const npc = this.npcs.find(n => n.id === npcId);
+    if (npc) npc.dir = dir;
+  }
+
   returnFromBattle(won, onWin = null) {
     this._inputLock = false;
     this._encounterCooldown = 4;
@@ -512,7 +521,7 @@ export class WorldScene extends Scene {
     if (this._shakeX !== 0 || this._shakeY !== 0) {
       ctx.translate(Math.round(this._shakeX), Math.round(this._shakeY));
     }
-    const npcSprites = this.npcs.map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id }));
+    const npcSprites = this.npcs.map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id, dir: n.dir }));
     this.map.render(ctx, npcSprites, this.player.spriteInfo);
     ctx.restore();
 

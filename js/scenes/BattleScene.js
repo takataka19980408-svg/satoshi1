@@ -41,6 +41,16 @@ export class BattleScene extends Scene {
     this._flashTimer = 0;
     this._flashColor = '#ffffff';
     this._tapHandler = null;
+    // Attack animation
+    this._playerOffX = 0;
+    this._atkPhase   = 0;   // 0=idle 1=charge 2=hit 3=return
+    this._atkTimer   = 0;
+    this._atkCallback = null;
+    // Boss intro
+    this._bossIntroPhase = 0;  // 0=none 1=dark 2=name 3=reveal
+    this._bossIntroTimer = 0;
+    this._bossBlackout   = 0;
+    this._bossNameAlpha  = 0;
   }
 
   enter({ enemyId, isBoss = false, onWin = null } = {}) {
@@ -77,9 +87,16 @@ export class BattleScene extends Scene {
     this._shake     = 0;
     this._flashTimer = 0;
     this._flashColor = '#ffffff';
+    this._playerOffX = 0;
+    this._atkPhase   = 0;
+    this._atkTimer   = 0;
+    this._atkCallback = null;
+    this._bossIntroPhase = 0;
+    this._bossIntroTimer = 0;
+    this._bossBlackout   = 0;
+    this._bossNameAlpha  = 0;
 
-    const bgm = isBoss ? 'boss' : 'battle';
-    this.game.audio.playBgm(bgm);
+    this.game.audio.playBgm(isBoss ? 'boss' : 'battle');
 
     this._tapHandler = (e) => {
       if (e.type === 'touchstart') e.preventDefault();
@@ -92,10 +109,16 @@ export class BattleScene extends Scene {
     this.game.canvas.addEventListener('touchstart', this._tapHandler, { passive: false });
     this.game.canvas.addEventListener('mousedown',  this._tapHandler);
 
-    this._pushMsg(`${this._enemy.name}があらわれた！`, () => {
-      this._state     = ST.SELECT_CMD;
-      this._inputLock = false;
-    });
+    if (isBoss) {
+      this._bossIntroPhase = 1;
+      this._bossBlackout   = 0;
+      this._bossIntroTimer = 0;
+    } else {
+      this._pushMsg(`${this._enemy.name}があらわれた！`, () => {
+        this._state     = ST.SELECT_CMD;
+        this._inputLock = false;
+      });
+    }
   }
 
   exit() {
@@ -168,6 +191,18 @@ export class BattleScene extends Scene {
     if (this._enemyShake > 0) this._enemyShake -= dt * 10;
     if (this._shake > 0)      this._shake      -= dt * 10;
     if (this._flashTimer > 0) this._flashTimer -= dt;
+
+    // ボス演出
+    if (this._bossIntroPhase > 0 && this._bossIntroPhase < 4) {
+      this._updateBossIntro(dt);
+      return;
+    }
+
+    // 攻撃アニメーション
+    if (this._atkPhase > 0) {
+      this._updateAtkAnim(dt);
+      return;
+    }
 
     // メッセージキュー処理
     if (this._msgTimer > 0) {
@@ -247,15 +282,82 @@ export class BattleScene extends Scene {
   _doPlayerAttack() {
     const attacker = this._party[0];
     const dmg = this.sys.calcDamageSimple(attacker.atk, this._enemy.def);
-    this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
-    this._enemyShake = 0.3;
-    this._flashTimer = 0.18;
-    this._flashColor = '#ffffff';
-    this.game.audio.playSfx('hit');
-    this._pushMsg(`サトシの攻撃！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
-      if (this._enemy.hp <= 0) this._winBattle();
-      else this._doCompanionAttacks(() => this._doEnemyAction());
-    });
+    this._atkPhase   = 1;
+    this._atkTimer   = 0;
+    this._playerOffX = 0;
+    this._inputLock  = true;
+    this._atkCallback = () => {
+      this._enemy.hp = Math.max(0, this._enemy.hp - dmg);
+      this._pushMsg(`サトシの攻撃！\n${this._enemy.name}に${dmg}のダメージ！`, () => {
+        if (this._enemy.hp <= 0) this._winBattle();
+        else this._doCompanionAttacks(() => this._doEnemyAction());
+      });
+    };
+  }
+
+  _updateBossIntro(dt) {
+    this._bossIntroTimer += dt;
+    const t = this._bossIntroTimer;
+    if (this._bossIntroPhase === 1) {
+      // フェードイン（暗転）
+      this._bossBlackout = Math.min(1, t / 0.4);
+      if (t >= 0.6) {
+        this.game.audio.playSfx('hit');
+        this._shake = 0.4;
+        this._bossIntroPhase = 2;
+        this._bossIntroTimer = 0;
+      }
+    } else if (this._bossIntroPhase === 2) {
+      // 名前が出る（暗転維持）
+      this._bossBlackout  = 1;
+      this._bossNameAlpha = Math.min(1, t / 0.5);
+      if (t >= 1.2) {
+        this._bossIntroPhase = 3;
+        this._bossIntroTimer = 0;
+      }
+    } else if (this._bossIntroPhase === 3) {
+      // 明転
+      this._bossBlackout = Math.max(0, 1 - t / 0.8);
+      if (t >= 0.8) {
+        this._bossIntroPhase = 4;
+        this._bossBlackout   = 0;
+        this._bossNameAlpha  = 0;
+        this._pushMsg(`${this._enemy.name}があらわれた！`, () => {
+          this._state     = ST.SELECT_CMD;
+          this._inputLock = false;
+        });
+      }
+    }
+  }
+
+  _updateAtkAnim(dt) {
+    const CHARGE = 0.14, HIT = 0.08, RETURN = 0.16;
+    this._atkTimer += dt;
+    if (this._atkPhase === 1) {
+      this._playerOffX = Math.round((this._atkTimer / CHARGE) * 48);
+      if (this._atkTimer >= CHARGE) {
+        this._atkTimer  = 0;
+        this._atkPhase  = 2;
+        this._enemyShake = 0.35;
+        this._flashTimer = 0.14;
+        this._flashColor = '#ffffff';
+        this._shake      = 0.2;
+        this.game.audio.playSfx('hit');
+      }
+    } else if (this._atkPhase === 2) {
+      this._playerOffX = 48;
+      if (this._atkTimer >= HIT) {
+        this._atkTimer = 0;
+        this._atkPhase = 3;
+      }
+    } else if (this._atkPhase === 3) {
+      this._playerOffX = Math.round(48 * (1 - this._atkTimer / RETURN));
+      if (this._atkTimer >= RETURN) {
+        this._playerOffX = 0;
+        this._atkPhase   = 0;
+        if (this._atkCallback) { this._atkCallback(); this._atkCallback = null; }
+      }
+    }
   }
 
   _doCompanionAttacks(onDone) {
@@ -435,6 +537,54 @@ export class BattleScene extends Scene {
     }
   }
 
+  _drawPlayerBack(ctx) {
+    const x = 56 + this._playerOffX;
+    const y = 248;
+    // 輪郭
+    ctx.fillStyle = '#02020a';
+    ctx.fillRect(x-10, y-26, 20, 10);
+    ctx.fillRect(x-11, y-18, 22, 16);
+    ctx.fillRect(x-8,  y+2,  18, 14);
+    // 帽子（後ろ向き）
+    ctx.fillStyle = '#c01818';
+    ctx.fillRect(x-8, y-26, 16, 9);
+    ctx.fillStyle = '#e02020';
+    ctx.fillRect(x-7, y-26, 14, 6);
+    ctx.fillStyle = '#901010';
+    ctx.fillRect(x-8, y-26, 16, 2);
+    ctx.fillStyle = '#780c0c';
+    ctx.fillRect(x-1, y-27, 2, 1);
+    // 後頭部・髪
+    ctx.fillStyle = '#0e0a14';
+    ctx.fillRect(x-7, y-18, 14, 5);
+    ctx.fillRect(x-9, y-16, 4, 6);
+    ctx.fillRect(x+5, y-16, 4, 6);
+    // 首
+    ctx.fillStyle = '#f5c888';
+    ctx.fillRect(x-3, y-14, 6, 5);
+    // シャツ（後ろ）
+    ctx.fillStyle = '#1e50e8';
+    ctx.fillRect(x-9, y-10, 18, 14);
+    ctx.fillStyle = '#1438b0';
+    ctx.fillRect(x-9, y-10, 3, 14);
+    ctx.fillRect(x+6, y-10, 3, 14);
+    // 腕
+    ctx.fillStyle = '#1e50e8';
+    ctx.fillRect(x-15, y-9, 7, 9);
+    ctx.fillRect(x+8,  y-9, 7, 9);
+    ctx.fillStyle = '#f5c888';
+    ctx.fillRect(x-15, y-1, 7, 4);
+    ctx.fillRect(x+8,  y-1, 7, 4);
+    // ズボン
+    ctx.fillStyle = '#181c52';
+    ctx.fillRect(x-8, y+4, 6, 10);
+    ctx.fillRect(x+2, y+4, 6, 10);
+    // 靴
+    ctx.fillStyle = '#14142a';
+    ctx.fillRect(x-9, y+12, 8, 4);
+    ctx.fillRect(x+1, y+12, 8, 4);
+  }
+
   render(ctx) {
     // 背景
     const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
@@ -443,11 +593,25 @@ export class BattleScene extends Scene {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
+    // 画面揺れ
+    if (this._shake > 0) {
+      ctx.save();
+      ctx.translate(
+        Math.round((Math.random() - 0.5) * this._shake * 10),
+        Math.round((Math.random() - 0.5) * this._shake * 6),
+      );
+    }
+
     // 星背景
     this._drawBattleBg(ctx);
 
     // 敵
     this._drawEnemy(ctx);
+
+    // プレイヤー後ろ姿
+    this._drawPlayerBack(ctx);
+
+    if (this._shake > 0) ctx.restore();
 
     // 味方ステータス
     this._drawPartyStatus(ctx);
@@ -468,6 +632,25 @@ export class BattleScene extends Scene {
       ctx.globalAlpha = Math.min(0.55, this._flashTimer * 3.5);
       ctx.fillStyle = this._flashColor;
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.globalAlpha = 1;
+    }
+
+    // ボス演出オーバーレイ
+    if (this._bossBlackout > 0) {
+      ctx.globalAlpha = this._bossBlackout;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.globalAlpha = 1;
+    }
+    if (this._bossNameAlpha > 0) {
+      ctx.globalAlpha = this._bossNameAlpha;
+      ctx.fillStyle = '#e8d880';
+      ctx.font = 'bold 22px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(this._enemy?.name || '', CANVAS_W / 2, CANVAS_H / 2 - 10);
+      ctx.fillStyle = '#a0a060';
+      ctx.font = '13px monospace';
+      ctx.fillText('――ボスが現れた――', CANVAS_W / 2, CANVAS_H / 2 + 18);
       ctx.globalAlpha = 1;
     }
   }
