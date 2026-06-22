@@ -1,5 +1,5 @@
 import { Scene } from '../engine/Scene.js';
-import { CANVAS_W, LAYOUT, COLORS, TILE_SIZE } from '../constants.js';
+import { CANVAS_W, CANVAS_H, LAYOUT, COLORS, TILE_SIZE } from '../constants.js';
 import { MapSystem }    from '../systems/MapSystem.js';
 import { DialogSystem } from '../systems/DialogSystem.js';
 import { EventSystem }  from '../systems/EventSystem.js';
@@ -18,6 +18,18 @@ export class WorldScene extends Scene {
     this._flashAlpha    = 0;
     this._flashDuration = 0;
     this._flashTimer    = 0;
+    this._blackoutAlpha = 0;
+    this._blackoutFading    = false;
+    this._blackoutFadeDir   = 0;
+    this._blackoutFadeSpeed = 0;
+    this._shakeX = 0;
+    this._shakeY = 0;
+    this._shakeDuration  = 0;
+    this._shakeIntensity = 0;
+    this._glowColor    = null;
+    this._glowAlpha    = 0;
+    this._glowTimer    = 0;
+    this._glowDuration = 0;
     this._inputLock     = false;
     this._initialized   = false;
     this._encounterCooldown = 0;
@@ -140,6 +152,35 @@ export class WorldScene extends Scene {
     if (this._flashTimer > 0) {
       this._flashTimer -= dt;
       this._flashAlpha = this._flashTimer / this._flashDuration;
+    }
+
+    if (this._blackoutFading) {
+      this._blackoutAlpha += this._blackoutFadeDir * this._blackoutFadeSpeed * dt;
+      this._blackoutAlpha = Math.max(0, Math.min(1, this._blackoutAlpha));
+      if ((this._blackoutFadeDir > 0 && this._blackoutAlpha >= 1) ||
+          (this._blackoutFadeDir < 0 && this._blackoutAlpha <= 0)) {
+        this._blackoutFading = false;
+      }
+    }
+
+    if (this._shakeDuration > 0) {
+      this._shakeDuration -= dt;
+      this._shakeX = (Math.random() - 0.5) * this._shakeIntensity * 2;
+      this._shakeY = (Math.random() - 0.5) * this._shakeIntensity * 2;
+    } else {
+      this._shakeX = 0;
+      this._shakeY = 0;
+    }
+
+    if (this._glowTimer > 0) {
+      this._glowTimer -= dt;
+      const half    = this._glowDuration / 2;
+      const elapsed = this._glowDuration - this._glowTimer;
+      this._glowAlpha = elapsed < half
+        ? (elapsed / half) * 0.32
+        : ((1 - (elapsed - half) / half)) * 0.32;
+    } else {
+      this._glowAlpha = 0;
     }
 
     if (this._inputLock || this.events.isRunning || this.dialog.active) {
@@ -426,6 +467,31 @@ export class WorldScene extends Scene {
     this._flashAlpha    = 1;
   }
 
+  blackoutIn(duration = 800) {
+    this._blackoutFadeDir   = 1;
+    this._blackoutFadeSpeed = 1 / (duration / 1000);
+    this._blackoutFading    = true;
+    this._blackoutAlpha     = 0;
+  }
+
+  blackoutOut(duration = 600) {
+    this._blackoutFadeDir   = -1;
+    this._blackoutFadeSpeed = 1 / (duration / 1000);
+    this._blackoutFading    = true;
+    this._blackoutAlpha     = 1;
+  }
+
+  shake(duration = 400, intensity = 5) {
+    this._shakeDuration  = duration / 1000;
+    this._shakeIntensity = intensity;
+  }
+
+  startGlow(color = '#aaddff', duration = 3000) {
+    this._glowColor    = color;
+    this._glowDuration = duration / 1000;
+    this._glowTimer    = duration / 1000;
+  }
+
   returnFromBattle(won, onWin = null) {
     this._inputLock = false;
     this._encounterCooldown = 4;
@@ -441,21 +507,46 @@ export class WorldScene extends Scene {
   }
 
   render(ctx) {
+    // Map with screen shake
+    ctx.save();
+    if (this._shakeX !== 0 || this._shakeY !== 0) {
+      ctx.translate(Math.round(this._shakeX), Math.round(this._shakeY));
+    }
     const npcSprites = this.npcs.map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id }));
     this.map.render(ctx, npcSprites, this.player.spriteInfo);
+    ctx.restore();
+
+    // Atmospheric glow over game area
+    if (this._glowAlpha > 0 && this._glowColor) {
+      ctx.globalAlpha = this._glowAlpha;
+      ctx.fillStyle = this._glowColor;
+      ctx.fillRect(0, LAYOUT.game.y, CANVAS_W, LAYOUT.game.h);
+      ctx.globalAlpha = 1;
+    }
 
     this._drawStatus(ctx);
-    this.dialog.render(ctx);
     this._drawMenuBtn(ctx);
 
     if (this._joystick.active) this._drawJoystick(ctx);
 
+    // Flash overlay
     if (this._flashTimer > 0 && this._flashColor) {
       ctx.globalAlpha = this._flashAlpha * 0.7;
       ctx.fillStyle = this._flashColor;
       ctx.fillRect(0, 0, CANVAS_W, LAYOUT.game.h + LAYOUT.game.y);
       ctx.globalAlpha = 1;
     }
+
+    // Blackout over full screen — dialog renders on top
+    if (this._blackoutAlpha > 0) {
+      ctx.globalAlpha = this._blackoutAlpha;
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      ctx.globalAlpha = 1;
+    }
+
+    // Dialog always on top
+    this.dialog.render(ctx);
   }
 
   _drawJoystick(ctx) {

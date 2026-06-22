@@ -34,7 +34,9 @@
   "npcs": [
     { "id": "mom", "x": 4, "y": 5, "dir": "down" }
   ],
-  "posEvents": [],
+  "posEvents": [
+    { "x": 5, "y": 8, "eventId": "mom_worry", "flag": "mom_warned" }
+  ],
   "exits": [
     { "x": 5, "y": 9, "toMap": "midori_village", "toX": 9, "toY": 3, "dir": "down" }
   ],

@@ -1,10 +1,25 @@
 {
   "house_start": {
     "steps": [
-      { "type": "wait", "duration": 600 },
+      { "type": "wait", "duration": 800 },
       { "type": "dialog", "text": "静かな朝。\n外から、鳥の声が聞こえる。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
       { "type": "dialog", "text": "今日も、いつもと変わらない日だと\nサトシは思っていた。", "speaker": "" },
       { "type": "bgm", "id": "village" },
+      { "type": "end" }
+    ]
+  },
+  "mom_worry": {
+    "condition": { "flagNotSet": "mom_warned" },
+    "steps": [
+      { "type": "setFlag", "flag": "mom_warned" },
+      { "type": "dialog", "text": "サトシ！", "speaker": "お母さん" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "森には気をつけるのよ。\n最近、なんか変な感じがするから。", "speaker": "お母さん" },
+      { "type": "dialog", "text": "（振り返ると、お母さんが\n心配そうにこちらを見ている）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "大丈夫だよ。", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（ちゃんと、帰って来なきゃ）", "speaker": "サトシ" },
       { "type": "end" }
     ]
   },
@@ -13,8 +28,13 @@
     "steps": [
       { "type": "setFlag", "flag": "forest_entered" },
       { "type": "bgm", "id": "forest" },
-      { "type": "dialog", "text": "ささやきの森。\n昼でも、少し暗い。", "speaker": "" },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "ささやきの森。\n昼でも、薄暗い。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
       { "type": "dialog", "text": "（足元の草が、風もないのに揺れている）", "speaker": "サトシ" },
+      { "type": "glow", "color": "#2a3a5a", "duration": 5000 },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（なんだろう。\nどこかで、何かが見ている気がする）", "speaker": "サトシ" },
       { "type": "end" }
     ]
   },
@@ -22,13 +42,20 @@
     "condition": { "flagNotSet": "mofu_joined" },
     "steps": [
       { "type": "sfx", "id": "stone" },
+      { "type": "wait", "duration": 500 },
       { "type": "dialog", "text": "茂みから、小さな鳴き声が聞こえた。", "speaker": "" },
-      { "type": "dialog", "text": "白い毛をした、犬のような小さな獣。\n怯えているのに、目だけはじっとこちらを見ている。", "speaker": "" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "白い毛の、小さな獣。\n怯えているのに、目だけはじっとこちらを見ていた。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
       { "type": "dialog", "text": "（逃げない。怖がっているはずなのに）", "speaker": "サトシ" },
-      { "type": "dialog", "text": "しゃがんで手を差し出すと、\n獣はゆっくりと近づいてきた。", "speaker": "" },
+      { "type": "dialog", "text": "（しゃがんで、ゆっくり手を差し伸べた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 700 },
       { "type": "dialog", "text": "...", "speaker": "モフ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（鼻先で、においをかいでいる。\nそして、ゆっくりと近づいてきた）", "speaker": "サトシ" },
       { "type": "addMonster", "monsterId": "mofu" },
       { "type": "setFlag", "flag": "mofu_joined" },
+      { "type": "sfx", "id": "item" },
       { "type": "dialog", "text": "モフが仲間になった。", "speaker": "" },
       { "type": "end" }
     ]
@@ -36,41 +63,66 @@
   "stone_discovery": {
     "condition": { "flagNotSet": "stone_found" },
     "steps": [
+      { "type": "wait", "duration": 500 },
       { "type": "dialog", "text": "足元に、光るものがある。", "speaker": "" },
-      { "type": "dialog", "text": "草の間に、青白く光る石が落ちていた。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "草の間から、青白い光が漏れていた。\n石だ。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（なぜか、手が自然と伸びていた）", "speaker": "サトシ" },
       { "type": "dialog", "text": "拾ってみる？", "choices": [
         { "label": "はい", "goto": "pick_yes" },
         { "label": "いいえ", "goto": "pick_no" }
       ]},
       { "type": "label", "id": "pick_no" },
-      { "type": "dialog", "text": "（でも、なぜか視線が離せない）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "（でも、視線が離せない。\n引き寄せられるような感覚）", "speaker": "サトシ" },
       { "type": "dialog", "text": "拾ってみる？", "choices": [
-        { "label": "はい", "goto": "pick_yes" },
-        { "label": "やっぱりいいや", "goto": "pick_cancel" }
+        { "label": "やっぱり拾う", "goto": "pick_yes" },
+        { "label": "やめておく", "goto": "pick_cancel" }
       ]},
       { "type": "label", "id": "pick_cancel" },
       { "type": "dialog", "text": "（それでも、その石から目が離せなかった）", "speaker": "サトシ" },
       { "type": "label", "id": "pick_yes" },
       { "type": "sfx", "id": "stone" },
-      { "type": "flash", "color": "#aaddff", "duration": 400 },
-      { "type": "dialog", "text": "石に触れた瞬間。", "speaker": "" },
-      { "type": "dialog", "text": "返して。", "speaker": "???" },
+      { "type": "flash", "color": "#aaddff", "duration": 350 },
+      { "type": "blackout", "duration": 700 },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "——返して。", "speaker": "???" },
+      { "type": "wait", "duration": 500 },
       { "type": "dialog", "text": "（声が、頭の中に直接響いた）", "speaker": "サトシ" },
-      { "type": "dialog", "text": "（外から聞こえた声じゃない。\nまるで、頭の中から）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（外から聞こえたんじゃない。\n頭の中から、直接）", "speaker": "サトシ" },
+      { "type": "clearBlackout", "duration": 900 },
+      { "type": "glow", "color": "#aaddff", "duration": 4000 },
       { "type": "addItem", "itemId": "strange_stone" },
       { "type": "setFlag", "flag": "stone_found" },
+      { "type": "bgm", "id": "forest" },
       { "type": "dialog", "text": "奇妙な石を手に入れた。", "speaker": "" },
+      { "type": "end" }
+    ]
+  },
+  "stone_village_reaction": {
+    "condition": { "flagSet": "stone_found", "flagNotSet": "village_reacted" },
+    "steps": [
+      { "type": "setFlag", "flag": "village_reacted" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（村に戻ると、なんとなく\n空気が変わった気がした）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "（石のせいだろうか。\nポケットの中で、かすかに光っている）", "speaker": "サトシ" },
       { "type": "end" }
     ]
   },
   "boss_trigger": {
     "condition": { "flagNotSet": "boss_defeated" },
     "steps": [
-      { "type": "dialog", "text": "地面が震えた。", "speaker": "" },
+      { "type": "shake", "duration": 700, "intensity": 6 },
+      { "type": "wait", "duration": 350 },
+      { "type": "dialog", "text": "地面が、震えた。", "speaker": "" },
       { "type": "sfx", "id": "damage" },
+      { "type": "wait", "duration": 400 },
       { "type": "dialog", "text": "森の奥から、大きな影が近づいてくる。", "speaker": "" },
-      { "type": "dialog", "text": "プニキング。\n本来は、森の静かな守り主のはずの生き物。", "speaker": "" },
-      { "type": "dialog", "text": "その目に、理性はない。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "プニキング。\n本来は、森の静かな守り主。", "speaker": "" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "その目に、もう理性はない。", "speaker": "" },
       { "type": "bgm", "id": "boss" },
       { "type": "battle", "enemyId": "puni_king", "isBoss": true, "onWin": "boss_win" }
     ]
@@ -78,13 +130,18 @@
   "boss_win": {
     "steps": [
       { "type": "bgm", "id": "forest" },
-      { "type": "flash", "color": "#aaddff", "duration": 600 },
-      { "type": "dialog", "text": "プニキングが静かになった。", "speaker": "" },
-      { "type": "dialog", "text": "石が、一瞬強く光った。", "speaker": "" },
-      { "type": "dialog", "text": "（また声がした。さっきよりも、小さく）", "speaker": "サトシ" },
+      { "type": "flash", "color": "#aaddff", "duration": 700 },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "プニキングが、静かになった。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石が、一瞬強く光った）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 700 },
       { "type": "dialog", "text": "...ごめん。", "speaker": "???" },
+      { "type": "wait", "duration": 500 },
       { "type": "dialog", "text": "（何に謝っているのか、わからない）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "（でも、その声はどこか\n疲れているように聞こえた）", "speaker": "サトシ" },
       { "type": "setFlag", "flag": "boss_defeated" },
+      { "type": "wait", "duration": 400 },
       { "type": "dialog", "text": "ミドリ村に戻ろう。", "speaker": "" },
       { "type": "teleport", "toMap": "midori_village", "toX": 9, "toY": 14 },
       { "type": "end" }
@@ -93,13 +150,27 @@
   "chapter1_end": {
     "condition": { "flagSet": "boss_defeated", "flagNotSet": "chapter1_ended" },
     "steps": [
+      { "type": "wait", "duration": 400 },
       { "type": "dialog", "text": "村長のもとへ向かった。", "speaker": "" },
-      { "type": "dialog", "text": "サトシか。よく戻った。\n森の騒ぎは収まったようだな。", "speaker": "村長" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "サトシか。よく戻った。\n...森は、収まったか。", "speaker": "村長" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（村長の目が、石に向いた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（何かを知っているような\n目をしている）", "speaker": "サトシ" },
       { "type": "dialog", "text": "その石を持っているうちは、\nまた何か起きるかもしれん。", "speaker": "村長" },
-      { "type": "dialog", "text": "お前に頼みがある。\n王都へ行ってくれ。", "speaker": "村長" },
-      { "type": "dialog", "text": "賢者エルドに会いなさい。\nあの方なら、何かわかるはずだ。", "speaker": "村長" },
-      { "type": "dialog", "text": "（サトシは石を見つめた。\nまだ光っている）", "speaker": "サトシ" },
-      { "type": "dialog", "text": "（声は、もう聞こえない。\nでも、何かがそこにある気がした）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "お前に頼みがある。", "speaker": "村長" },
+      { "type": "dialog", "text": "王都へ行ってくれ。\n賢者エルドに会いなさい。", "speaker": "村長" },
+      { "type": "dialog", "text": "あの方なら、この石のことを\n知っているはずだ。", "speaker": "村長" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（サトシは石を見つめた。\nまだ、かすかに光っている）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "（声は、もう聞こえない。\nでも、何かがそこにある）", "speaker": "サトシ" },
+      { "type": "blackout", "duration": 900 },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "...帰りたい。", "speaker": "???" },
+      { "type": "wait", "duration": 1000 },
+      { "type": "clearBlackout", "duration": 1200 },
       { "type": "setFlag", "flag": "chapter1_ended" },
       { "type": "bgm", "id": "ending" },
       { "type": "save" },

@@ -58,9 +58,10 @@
     { "id": "villager_c", "x": 6,  "y": 14, "dir": "down"  }
   ],
   "posEvents": [
-    { "x": 9, "y": 3,  "eventId": "house_start",   "flag": "house_start_done" },
-    { "x": 9, "y": 6,  "eventId": "chapter1_end",   "flag": "chapter1_ended"   },
-    { "x": 9, "y": 14, "eventId": "chapter1_end",   "flag": "chapter1_ended"   }
+    { "x": 9, "y": 3,  "eventId": "house_start",           "flag": "house_start_done" },
+    { "x": 9, "y": 6,  "eventId": "chapter1_end",          "flag": "chapter1_ended"   },
+    { "x": 9, "y": 12, "eventId": "stone_village_reaction", "flag": "village_reacted"  },
+    { "x": 9, "y": 14, "eventId": "chapter1_end",          "flag": "chapter1_ended"   }
   ],
   "exits": [
     { "x": 9, "y": 18, "toMap": "whispering_forest", "toX": 9, "toY": 1, "dir": "down" },

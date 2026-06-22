@@ -193,6 +193,28 @@ export class EventSystem {
         this._waitTimer = (step.duration || 300) / 1000;
         break;
 
+      case 'blackout':
+        w.blackoutIn(step.duration || 800);
+        this._waiting = true;
+        this._waitTimer = (step.duration || 800) / 1000;
+        break;
+
+      case 'clearBlackout':
+        w.blackoutOut(step.duration || 600);
+        this._waiting = true;
+        this._waitTimer = (step.duration || 600) / 1000;
+        break;
+
+      case 'shake':
+        w.shake(step.duration || 400, step.intensity || 5);
+        this._nextStep();
+        break;
+
+      case 'glow':
+        w.startGlow(step.color || '#aaddff', step.duration || 3000);
+        this._nextStep();
+        break;
+
       case 'wait':
         this._waiting = true;
         this._waitTimer = step.duration / 1000;

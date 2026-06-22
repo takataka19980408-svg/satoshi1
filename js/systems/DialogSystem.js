@@ -5,7 +5,8 @@ const MSG_Y  = LAYOUT.msg.y;
 const MSG_W  = LAYOUT.msg.w - 16;
 const MSG_H  = LAYOUT.msg.h;
 const LINE_H = 20;
-const CHAR_SPEED = 0.03; // 1文字あたりの秒数
+const CHAR_SPEED = 0.055; // slower, more deliberate typewriter
+const PAGE_DELAY = 0.12;  // brief pause before typing starts on each page
 
 export class DialogSystem {
   constructor(game) {
@@ -16,12 +17,13 @@ export class DialogSystem {
     this.lineIndex = 0;
     this.charIndex = 0;
     this.charTimer = 0;
-    this.done      = false;   // 現在のページが表示し終わったか
-    this.finished  = false;   // 全メッセージが終わったか
+    this.done      = false;
+    this.finished  = false;
     this.choices   = null;
     this.choiceIdx = 0;
     this._onClose  = null;
     this._blinkTimer = 0;
+    this._pageDelay  = 0;
   }
 
   show(text, speaker = '', onClose = null) {
@@ -35,6 +37,7 @@ export class DialogSystem {
     this.finished  = false;
     this.choices   = null;
     this._onClose  = onClose;
+    this._pageDelay = PAGE_DELAY;
   }
 
   showChoice(text, choices, speaker = '') {
@@ -44,7 +47,6 @@ export class DialogSystem {
   }
 
   _splitLines(text) {
-    // テキストを画面幅で折り返し、各ページ2行
     const words = Array.from(text);
     const maxChars = 18;
     const lines = [];
@@ -55,7 +57,6 @@ export class DialogSystem {
         cur = '';
       } else {
         cur += ch;
-        // 全角文字は1文字で最大幅になり得る
         if (cur.length >= maxChars) {
           lines.push(cur);
           cur = '';
@@ -63,7 +64,6 @@ export class DialogSystem {
       }
     }
     if (cur) lines.push(cur);
-    // 2行ずつのページに分割
     const pages = [];
     for (let i = 0; i < lines.length; i += 2) {
       pages.push(lines.slice(i, i + 2).join('\n'));
@@ -74,6 +74,11 @@ export class DialogSystem {
   update(dt) {
     if (!this.active || this.finished) return;
     this._blinkTimer += dt;
+
+    if (this._pageDelay > 0) {
+      this._pageDelay -= dt;
+      return;
+    }
 
     if (!this.done) {
       this.charTimer += dt;
@@ -86,30 +91,28 @@ export class DialogSystem {
     }
   }
 
-  // A ボタン / Enter を押したとき呼ぶ
   confirm() {
     if (!this.active) return;
+    if (this._pageDelay > 0) return;
 
     if (!this.done) {
-      // 途中なら全文表示
       this.charIndex = this.lines[this.lineIndex].length;
       this.done = true;
       return;
     }
 
     if (this.choices && this.done) {
-      // 選択肢があれば選択結果を返す
       const chosen = this.choices[this.choiceIdx];
       this.close();
       return chosen;
     }
 
-    // 次のページへ
     if (this.lineIndex < this.lines.length - 1) {
       this.lineIndex++;
       this.charIndex = 0;
       this.charTimer = 0;
       this.done = false;
+      this._pageDelay = PAGE_DELAY;
     } else {
       this.finished = true;
       this.close();
@@ -145,14 +148,12 @@ export class DialogSystem {
     const w = LAYOUT.msg.w - 12;
     const h = MSG_H;
 
-    // メッセージウィンドウ背景
     ctx.fillStyle = 'rgba(8, 10, 28, 0.94)';
     ctx.fillRect(x, y + 2, w, h - 4);
     ctx.strokeStyle = COLORS.border;
     ctx.lineWidth = 2;
     ctx.strokeRect(x, y + 2, w, h - 4);
 
-    // スピーカー名
     if (this.speaker) {
       ctx.fillStyle = COLORS.panel;
       ctx.fillRect(x + 8, y - 4, this.speaker.length * 10 + 16, 18);
@@ -165,7 +166,6 @@ export class DialogSystem {
       ctx.fillText(this.speaker, x + 16, y + 9);
     }
 
-    // テキスト
     const currentPage = this.lines[this.lineIndex] || '';
     const visibleText = currentPage.slice(0, this.charIndex);
     const textLines = visibleText.split('\n');
@@ -177,7 +177,6 @@ export class DialogSystem {
       ctx.fillText(textLines[i], x + 14, y + 22 + i * LINE_H);
     }
 
-    // 続きインジケーター（点滅）
     if (this.done && !this.choices) {
       const alpha = 0.5 + 0.5 * Math.sin(this._blinkTimer * 4);
       ctx.globalAlpha = alpha;
@@ -186,7 +185,6 @@ export class DialogSystem {
       ctx.globalAlpha = 1;
     }
 
-    // 選択肢
     if (this.choices && this.done) {
       this._renderChoices(ctx, x, y, w, h);
     }
