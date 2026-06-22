@@ -33,6 +33,7 @@ export class WorldScene extends Scene {
     this._inputLock     = false;
     this._initialized   = false;
     this._encounterCooldown = 0;
+    this._narrationLines = [];
     this._touchStartHandler = null;
     this._touchMoveHandler  = null;
     this._touchEndHandler   = null;
@@ -138,9 +139,15 @@ export class WorldScene extends Scene {
       this.game.loader.get('data/events/chapter1.json') || {},
       this.game.loader.get('data/events/chapter2.json') || {},
       this.game.loader.get('data/events/chapter3.json') || {},
+      this.game.loader.get('data/events/chapter4.json') || {},
     );
     this.events.load(eventData);
-    this.npcs = npcDefs.map(def => new NPC(def, npcData[def.id]));
+    const npcDataAll = Object.assign(
+      {},
+      npcData,
+      this.game.loader.get('data/npcs/chapter4.json') || {},
+    );
+    this.npcs = npcDefs.map(def => new NPC(def, npcDataAll[def.id]));
   }
 
   exit() {
@@ -496,6 +503,10 @@ export class WorldScene extends Scene {
     this._shakeIntensity = intensity;
   }
 
+  showNarration(lines) {
+    this._narrationLines = Array.isArray(lines) ? lines : [];
+  }
+
   startGlow(color = '#aaddff', duration = 3000) {
     this._glowColor    = color;
     this._glowDuration = duration / 1000;
@@ -562,6 +573,21 @@ export class WorldScene extends Scene {
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
       ctx.globalAlpha = 1;
+    }
+
+    // Narration text on blackout screen
+    if (this._narrationLines.length > 0 && this._blackoutAlpha > 0.05) {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.font = '13px monospace';
+      const lineH = 26;
+      const startY = CANVAS_H / 2 - (this._narrationLines.length * lineH) / 2 + 10;
+      this._narrationLines.forEach((line, i) => {
+        ctx.globalAlpha = this._blackoutAlpha * 0.92;
+        ctx.fillStyle = '#b8ccee';
+        ctx.fillText(line, CANVAS_W / 2, startY + i * lineH);
+      });
+      ctx.restore();
     }
 
     // Dialog always on top

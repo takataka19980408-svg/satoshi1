@@ -230,6 +230,12 @@ export class EventSystem {
         this._waitTimer = step.duration / 1000;
         break;
 
+      case 'narration':
+        w.showNarration(Array.isArray(step.lines) ? step.lines : (step.text ? [step.text] : []));
+        this._waiting = true;
+        this._waitTimer = (step.duration || 3000) / 1000;
+        break;
+
       case 'teleport':
         w.teleport(step.toMap, step.toX, step.toY);
         this._nextStep();

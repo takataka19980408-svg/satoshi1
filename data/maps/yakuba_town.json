@@ -51,7 +51,7 @@
   ],
   "posEvents": [
     { "x": 9, "y": 12, "eventId": "yakuba_arrive",  "flag": "yakuba_arrived"  },
-    { "x": 4, "y": 5,  "eventId": "ril_meet",       "flag": "ril_met"         },
+    { "x": 9, "y": 1,  "eventId": "ril_meet",       "flag": "ril_met"         },
     { "x": 9, "y": 11, "eventId": "chapter2_end",   "flag": "chapter2_ended"  }
   ],
   "exits": [

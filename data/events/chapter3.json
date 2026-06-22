@@ -105,7 +105,12 @@
       { "type": "dialog", "text": "（リルも、黙っていた）", "speaker": "サトシ" },
       { "type": "setFlag", "flag": "astera_truth_seen" },
       { "type": "save" },
-      { "type": "endChapter", "chapter": 3 }
+      { "type": "blackout", "duration": 1200 },
+      { "type": "narration", "lines": ["夜が明けた。", "サトシとリルは、塔を降りた。", "アステラの声が、", "まだ頭の中で響いていた。"], "duration": 4000 },
+      { "type": "teleport", "toMap": "royal_capital", "toX": 9, "toY": 14 },
+      { "type": "bgm", "id": "village" },
+      { "type": "clearBlackout", "duration": 2000 },
+      { "type": "end" }
     ]
   }
 }

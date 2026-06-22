@@ -177,11 +177,12 @@
       { "type": "wait", "duration": 700 },
       { "type": "dialog", "text": "...帰りたい。", "speaker": "???" },
       { "type": "wait", "duration": 1000 },
-      { "type": "clearBlackout", "duration": 1200 },
       { "type": "setFlag", "flag": "chapter1_ended" },
-      { "type": "bgm", "id": "ending" },
       { "type": "save" },
-      { "type": "endChapter" }
+      { "type": "narration", "lines": ["ミドリ村に静かな夜が来た。", "サトシは石を見つめた。", "「返して」", "声は、繰り返す。"], "duration": 3500 },
+      { "type": "teleport", "toMap": "yakuba_town", "toX": 9, "toY": 13 },
+      { "type": "bgm", "id": "village" },
+      { "type": "clearBlackout", "duration": 1500 }
     ]
   }
 }

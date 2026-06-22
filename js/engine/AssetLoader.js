@@ -26,9 +26,11 @@ export class AssetLoader {
       'data/npcs/chapter1.json',
       'data/npcs/chapter2.json',
       'data/npcs/chapter3.json',
+      'data/npcs/chapter4.json',
       'data/events/chapter1.json',
       'data/events/chapter2.json',
       'data/events/chapter3.json',
+      'data/events/chapter4.json',
     ];
     await Promise.allSettled(paths.map(p => this.loadJSON(p)));
   }

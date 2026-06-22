@@ -14,9 +14,11 @@
     "condition": { "flagSet": "chapter1_ended", "flagNotSet": "ril_met" },
     "steps": [
       { "type": "setFlag", "flag": "ril_met" },
-      { "type": "npcFace", "npcId": "ril", "dir": "right" },
+      { "type": "faceDir", "dir": "up" },
       { "type": "wait", "duration": 300 },
-      { "type": "dialog", "text": "あ、旅人さん？\nここに来るのは珍しいね。", "speaker": "リル" },
+      { "type": "dialog", "text": "（北の出口に差し掛かったとき、\n声がかかった）", "speaker": "" },
+      { "type": "wait", "duration": 200 },
+      { "type": "dialog", "text": "待って。\nどこへ行くの？", "speaker": "リル" },
       { "type": "wait", "duration": 200 },
       { "type": "dialog", "text": "（赤い短髪の少女が、\nこちらを見ていた）", "speaker": "サトシ" },
       { "type": "dialog", "text": "あたしはリル。傭兵見習い。\n王都の方に用があってここに寄ってた。", "speaker": "リル" },
@@ -85,6 +87,23 @@
       { "type": "dialog", "text": "その石、震えてる？\nこの場所に反応してるのかな。", "speaker": "リル" },
       { "type": "wait", "duration": 400 },
       { "type": "dialog", "text": "（奥から、低い唸り声が聞こえた）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "mine_lore": {
+    "condition": { "flagNotSet": "mine_lore_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "mine_lore_seen" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（行き止まりの壁に、何かが彫られている）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "これ...黒曜団の紋章？\nそれと、この模様——星みたい。", "speaker": "リル" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（石が、強く反応している）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（ここで、何かが行われていた。\nアステラに関係する何かが）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "黒曜団は、この石を\nずっと探してたのかな。", "speaker": "リル" },
       { "type": "end" }
     ]
   },
