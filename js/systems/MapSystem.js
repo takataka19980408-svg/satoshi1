@@ -774,4 +774,55 @@ export class MapSystem {
     ctx.fillRect(cx-11, dy+12, 3, 1);
     ctx.fillRect(cx+8,  dy+12, 3, 1);
   }
+
+  renderEventIcons(ctx, flags, time) {
+    if (!this.mapData?.posEvents) return;
+    const bob = Math.sin(time * 3.2) * 3;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, TILE_Y0, CANVAS_W, TILE_H);
+    ctx.clip();
+
+    for (const ev of this.mapData.posEvents) {
+      if (flags[ev.flag]) continue;
+      const dx = ev.x * TILE_SIZE - this.camX;
+      const dy = TILE_Y0 + ev.y * TILE_SIZE - this.camY;
+      if (dx < -TILE_SIZE || dx > CANVAS_W || dy < TILE_Y0 - TILE_SIZE || dy > TILE_Y0 + TILE_H) continue;
+
+      const cx = dx + TILE_SIZE / 2;
+      const cy = dy - 8 + bob;
+
+      // 影
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.arc(cx, cy + 1, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 円背景
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = '#ffe033';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 枠
+      ctx.strokeStyle = '#b87800';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // 「!」
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#3a2800';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('!', cx, cy + 0.5);
+    }
+
+    ctx.textBaseline = 'alphabetic';
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
 }

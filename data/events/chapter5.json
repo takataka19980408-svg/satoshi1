@@ -122,9 +122,8 @@
   },
 
   "astera_boss": {
-    "condition": { "flagSet": "ril_gone", "flagNotSet": "astera_boss_started" },
+    "condition": { "flagSet": "ril_gone", "flagNotSet": "astera_boss_defeated" },
     "steps": [
-      { "type": "setFlag", "flag": "astera_boss_started" },
       { "type": "wait", "duration": 500 },
       { "type": "dialog", "text": "（アステラが、サトシの前に立った）", "speaker": "サトシ" },
       { "type": "wait", "duration": 400 },

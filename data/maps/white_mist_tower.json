@@ -46,7 +46,8 @@
     { "x": 4, "y": 2,  "eventId": "tower_top",     "flag": "tower_top_seen"   }
   ],
   "exits": [
-    { "x": 5, "y": 13, "toMap": "royal_capital", "toX": 9, "toY": 2, "dir": "up" }
+    { "x": 5, "y": 13, "toMap": "royal_capital", "toX": 9, "toY": 2, "dir": "up" },
+    { "x": 4, "y": 1,  "toMap": "star_bridge",   "toX": 3, "toY": 11, "dir": "up" }
   ],
   "encounters": [
     { "id": "tower_specter", "weight": 100 }

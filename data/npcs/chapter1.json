@@ -2,6 +2,7 @@
   "mom": {
     "name": "お母さん",
     "sprite": "mom",
+    "action": "heal",
     "dialog": {
       "default": [
         "今日も静かでよかったわ。",

@@ -36,6 +36,7 @@ export class WorldScene extends Scene {
     this._narrationLines = [];
     this._follower = null;
     this._prevPlayerTile = null;
+    this._iconBlink = 0;
     this._touchStartHandler = null;
     this._touchMoveHandler  = null;
     this._touchEndHandler   = null;
@@ -179,6 +180,7 @@ export class WorldScene extends Scene {
     this.events.update(dt);
 
     if (this._encounterCooldown > 0) this._encounterCooldown -= dt;
+    this._iconBlink += dt;
 
     if (this._flashTimer > 0) {
       this._flashTimer -= dt;
@@ -457,13 +459,24 @@ export class WorldScene extends Scene {
     this.game.audio.playSfx('confirm');
     const lines = npc.getDialog(this.game.state.flags);
     const allLines = Array.isArray(lines) ? lines : [lines];
-    this._showSequentialDialog(allLines, npc.name, 0);
+    let onDone = null;
+    if (npc._data.action === 'heal') {
+      onDone = () => {
+        this.game.state.party.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp || 0; });
+        this.game.state.monsters.forEach(m => { m.hp = m.maxHp; m.mp = m.maxMp || 0; });
+        this.dialog.show('HPが全回復した！', '', null);
+      };
+    }
+    this._showSequentialDialog(allLines, npc.name, 0, onDone);
   }
 
-  _showSequentialDialog(lines, speaker, idx) {
-    if (idx >= lines.length) return;
+  _showSequentialDialog(lines, speaker, idx, onDone) {
+    if (idx >= lines.length) {
+      if (onDone) onDone();
+      return;
+    }
     this.dialog.show(lines[idx], speaker, () => {
-      if (idx + 1 < lines.length) this._showSequentialDialog(lines, speaker, idx + 1);
+      this._showSequentialDialog(lines, speaker, idx + 1, onDone);
     });
   }
 
@@ -604,6 +617,7 @@ export class WorldScene extends Scene {
       .map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id, dir: n.dir }));
     const followerSprite = (rilJoined && this._follower) ? this._follower : null;
     this.map.render(ctx, npcSprites, this.player.spriteInfo, followerSprite);
+    this.map.renderEventIcons(ctx, this.game.state.flags, this._iconBlink);
     ctx.restore();
 
     // Atmospheric glow over game area
