@@ -784,45 +784,143 @@ export class MapSystem {
     ctx.rect(0, TILE_Y0, CANVAS_W, TILE_H);
     ctx.clip();
 
+    const seen = new Set();
     for (const ev of this.mapData.posEvents) {
       if (flags[ev.flag]) continue;
+      const key = `${ev.x},${ev.y}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
       const dx = ev.x * TILE_SIZE - this.camX;
       const dy = TILE_Y0 + ev.y * TILE_SIZE - this.camY;
       if (dx < -TILE_SIZE || dx > CANVAS_W || dy < TILE_Y0 - TILE_SIZE || dy > TILE_Y0 + TILE_H) continue;
 
-      const cx = dx + TILE_SIZE / 2;
-      const cy = dy - 8 + bob;
+      const cx = Math.round(dx + TILE_SIZE / 2);
+      const cy = Math.round(dy - 6 + bob);
 
-      // 影
-      ctx.globalAlpha = 0.25;
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.arc(cx, cy + 1, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 円背景
-      ctx.globalAlpha = 0.92;
-      ctx.fillStyle = '#ffe033';
-      ctx.beginPath();
-      ctx.arc(cx, cy, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 枠
-      ctx.strokeStyle = '#b87800';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // 「!」
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#3a2800';
-      ctx.font = 'bold 11px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('!', cx, cy + 0.5);
+      switch (ev.iconType) {
+        case 'mofu':   this._drawIconMofu(ctx, cx, cy);   break;
+        case 'puni':   this._drawIconPuni(ctx, cx, cy);   break;
+        case 'stairs': this._drawIconStairs(ctx, cx, cy); break;
+        default:       this._drawIconExclaim(ctx, cx, cy); break;
+      }
     }
 
-    ctx.textBaseline = 'alphabetic';
     ctx.globalAlpha = 1;
     ctx.restore();
+  }
+
+  _drawIconExclaim(ctx, cx, cy) {
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.arc(cx, cy + 1, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = '#ffe033';
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#b87800'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#3a2800';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('!', cx, cy + 0.5);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  _drawIconStairs(ctx, cx, cy) {
+    // 影
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(cx - 8, cy + 5, 16, 3);
+    ctx.globalAlpha = 1;
+
+    const L = '#d4c494'; // 踏み面（明）
+    const D = '#8a7044'; // 蹴上げ（暗）
+    const S = '#5a4828'; // 影エッジ
+
+    // 踏み面（上から薄くハイライト）
+    // 上段
+    ctx.fillStyle = L;
+    ctx.fillRect(cx - 7, cy - 6, 6, 3);
+    ctx.fillStyle = '#e8d8a8';
+    ctx.fillRect(cx - 7, cy - 6, 6, 1); // 上エッジ
+
+    // 中段
+    ctx.fillStyle = L;
+    ctx.fillRect(cx - 7, cy - 1, 10, 3);
+    ctx.fillStyle = '#e8d8a8';
+    ctx.fillRect(cx - 7, cy - 1, 10, 1);
+
+    // 下段
+    ctx.fillStyle = L;
+    ctx.fillRect(cx - 7, cy + 4, 14, 3);
+    ctx.fillStyle = '#e8d8a8';
+    ctx.fillRect(cx - 7, cy + 4, 14, 1);
+
+    // 蹴上げ（縦面）
+    ctx.fillStyle = D;
+    ctx.fillRect(cx - 7, cy - 3, 6, 2);  // 上段の蹴上げ
+    ctx.fillRect(cx - 7, cy + 2, 10, 2); // 中段の蹴上げ
+
+    // 段差エッジ（右側の縦ライン）
+    ctx.fillStyle = S;
+    ctx.fillRect(cx - 1, cy - 6, 1, 5);  // 上段→中段 エッジ
+    ctx.fillRect(cx + 3, cy - 1, 1, 5);  // 中段→下段 エッジ
+  }
+
+  _drawIconMofu(ctx, cx, cy) {
+    // 小さいモフ（約16×18px）を canvas scaling で描画
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(0.53, 0.53);
+    // _drawMofu は (dx, dy) = top-left origin、視覚中心は (dx+16, dy+14) 付近
+    this._drawMofu(ctx, -16, -12);
+    ctx.restore();
+  }
+
+  _drawIconPuni(ctx, cx, cy) {
+    // ミニプニキング（王冠付きの紫スライム）
+    // 王冠
+    ctx.fillStyle = '#c8a408';
+    ctx.fillRect(cx - 6, cy - 9, 12, 3);  // 王冠ベース
+    ctx.fillRect(cx - 6, cy - 12, 3, 3);  // 左突起
+    ctx.fillRect(cx - 2, cy - 13, 3, 4);  // 中央突起（最大）
+    ctx.fillRect(cx + 3, cy - 12, 3, 3);  // 右突起
+    // 宝石
+    ctx.fillStyle = '#ff1850';
+    ctx.fillRect(cx - 5, cy - 11, 2, 2);
+    ctx.fillRect(cx - 1, cy - 12, 2, 2);
+    ctx.fillRect(cx + 4, cy - 11, 2, 2);
+    ctx.fillStyle = '#ff90b0';
+    ctx.fillRect(cx - 5, cy - 11, 1, 1);
+    ctx.fillRect(cx - 1, cy - 12, 1, 1);
+    ctx.fillRect(cx + 4, cy - 11, 1, 1);
+
+    // 体（紫スライム）
+    ctx.fillStyle = '#6e10a0';
+    ctx.fillRect(cx - 6, cy - 6, 12, 11); // 胴体
+    ctx.fillRect(cx - 4, cy - 8, 8,  4);  // 上部（丸み）
+    // ハイライト
+    ctx.fillStyle = '#9820d8';
+    ctx.fillRect(cx - 4, cy - 7, 5, 3);
+    // つや
+    ctx.fillStyle = '#c060ff';
+    ctx.fillRect(cx - 3, cy - 7, 2, 2);
+
+    // 目（赤）
+    ctx.fillStyle = '#ff1040';
+    ctx.fillRect(cx - 4, cy - 2, 3, 3);
+    ctx.fillRect(cx + 1, cy - 2, 3, 3);
+    ctx.fillStyle = '#ff90a8';
+    ctx.fillRect(cx - 4, cy - 2, 1, 1);
+    ctx.fillRect(cx + 1, cy - 2, 1, 1);
+
+    // 口（ニタリ）
+    ctx.fillStyle = '#1a0820';
+    ctx.fillRect(cx - 3, cy + 2, 7, 2);
+    ctx.fillStyle = '#f0a000'; // 歯
+    ctx.fillRect(cx - 3, cy + 2, 2, 1);
+    ctx.fillRect(cx - 1, cy + 2, 2, 1);
+    ctx.fillRect(cx + 1, cy + 2, 2, 1);
   }
 }
