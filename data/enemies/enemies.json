@@ -166,5 +166,21 @@
     "drops": [],
     "isBoss": true,
     "lore": "白霧の塔を守る古い存在。星の時代から眠っていた。"
+  },
+  "astera_form": {
+    "id": "astera_form",
+    "name": "アステラ",
+    "sprite": "astera_form",
+    "hp": 180,
+    "mp": 40,
+    "atk": 20,
+    "def": 12,
+    "spd": 15,
+    "exp": 0,
+    "gold": 0,
+    "skills": [],
+    "drops": [],
+    "isBoss": true,
+    "lore": "星の最後の欠片。千年、一人で眠り続けた存在。"
   }
 }

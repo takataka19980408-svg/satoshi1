@@ -37,10 +37,11 @@
   },
   "npcs": [],
   "posEvents": [
-    { "x": 6, "y": 9,  "eventId": "temple_enter",        "flag": "temple_entered"          },
-    { "x": 6, "y": 7,  "eventId": "astera_materialize",  "flag": "astera_materialize_seen" },
-    { "x": 6, "y": 4,  "eventId": "ril_truth",           "flag": "ril_truth_seen"          },
-    { "x": 6, "y": 1,  "eventId": "final_decision",      "flag": "game_cleared"            }
+    { "x": 6, "y": 9, "eventId": "temple_enter",    "flag": "temple_entered"       },
+    { "x": 6, "y": 7, "eventId": "astera_memories", "flag": "astera_memories_seen" },
+    { "x": 6, "y": 5, "eventId": "ril_disappears",  "flag": "ril_gone"             },
+    { "x": 6, "y": 3, "eventId": "astera_boss",     "flag": "astera_boss_started"  },
+    { "x": 6, "y": 1, "eventId": "final_decision",  "flag": "game_cleared"         }
   ],
   "exits": [
     { "x": 6, "y": 11, "toMap": "white_mist_tower", "toX": 4, "toY": 1, "dir": "up" }

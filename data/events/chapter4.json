@@ -1,4 +1,23 @@
 {
+  "dream_event": {
+    "condition": { "flagSet": "tower_top_seen", "flagNotSet": "dream_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "dream_seen" },
+      { "type": "blackout", "duration": 1500 },
+      { "type": "narration", "lines": ["眠れなかった。", "夢なのか、現実なのか——"], "duration": 3500 },
+      { "type": "wait", "duration": 800 },
+      { "type": "narration", "lines": ["どこかに、遠い影があった。"], "duration": 2500 },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "アステラ——", "speaker": "サトシ" },
+      { "type": "wait", "duration": 1000 },
+      { "type": "dialog", "text": "......", "speaker": "" },
+      { "type": "wait", "duration": 800 },
+      { "type": "dialog", "text": "その名前を……\n知っているの？", "speaker": "???" },
+      { "type": "wait", "duration": 600 },
+      { "type": "clearBlackout", "duration": 2000 },
+      { "type": "end" }
+    ]
+  },
   "zect_ambush": {
     "condition": { "flagSet": "astera_truth_seen", "flagNotSet": "zect_met" },
     "steps": [

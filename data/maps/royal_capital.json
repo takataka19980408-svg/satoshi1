@@ -53,6 +53,7 @@
     { "id": "capital_merchant", "x": 3, "y": 8,  "dir": "down" }
   ],
   "posEvents": [
+    { "x": 9, "y": 13, "eventId": "dream_event",      "flag": "dream_seen"           },
     { "x": 9, "y": 15, "eventId": "capital_arrive",  "flag": "capital_arrived"      },
     { "x": 9, "y": 6,  "eventId": "eldo_meet",       "flag": "eldo_met"             },
     { "x": 9, "y": 8,  "eventId": "zect_ambush",     "flag": "zect_met"             },

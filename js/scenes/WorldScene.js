@@ -93,7 +93,7 @@ export class WorldScene extends Scene {
     );
     this.map.updateCamera(this.player.px, this.player.py);
 
-    if (this.game.state.flags?.['ril_joined']) {
+    if (this.game.state.flags?.['ril_joined'] && !this.game.state.flags?.['ril_gone']) {
       this._follower = {
         px: this.player.px, py: this.player.py,
         targetPx: this.player.px, targetPy: this.player.py,
@@ -429,14 +429,14 @@ export class WorldScene extends Scene {
   }
 
   _updateFollower(dt) {
-    if (this.events.flagSet('ril_joined') && !this._follower) {
+    if (this.events.flagSet('ril_joined') && !this.events.flagSet('ril_gone') && !this._follower) {
       this._follower = {
         px: this.player.px, py: this.player.py,
         targetPx: this.player.px, targetPy: this.player.py,
         dir: this.player.dir,
       };
     }
-    if (!this._follower) return;
+    if (!this._follower || this.events.flagSet('ril_gone')) return;
     const FOLLOW_SPEED = 5 * TILE_SIZE;
     const fdx = this._follower.targetPx - this._follower.px;
     const fdy = this._follower.targetPy - this._follower.py;
@@ -598,7 +598,7 @@ export class WorldScene extends Scene {
     if (this._shakeX !== 0 || this._shakeY !== 0) {
       ctx.translate(Math.round(this._shakeX), Math.round(this._shakeY));
     }
-    const rilJoined = this.events.flagSet('ril_joined');
+    const rilJoined = this.events.flagSet('ril_joined') && !this.events.flagSet('ril_gone');
     const npcSprites = this.npcs
       .filter(n => !(rilJoined && n.id === 'ril'))
       .map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id, dir: n.dir }));

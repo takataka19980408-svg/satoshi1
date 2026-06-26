@@ -177,6 +177,11 @@ export class EventSystem {
         break;
       }
 
+      case 'removeMonster':
+        g.state.monsters = g.state.monsters.filter(m => m.id !== step.monsterId);
+        this._nextStep();
+        break;
+
       case 'sfx':
         g.audio.playSfx(step.id);
         this._nextStep();

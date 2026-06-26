@@ -910,6 +910,58 @@ export class BattleScene extends Scene {
         }
         break;
       }
+      case 'astera_form': {
+        // アステラ（星の形態）— 青白い光の少女
+        const af = 0.7 + 0.3 * Math.sin(this._blinkTimer * 2.5);
+        const cxa = x + 40, cya = y + 44;
+        // オーラ
+        ctx.fillStyle = `rgba(120,200,255,${0.12 * af})`;
+        ctx.fillRect(cxa-30, cya-62, 60, 66);
+        ctx.fillStyle = `rgba(160,220,255,${0.07 * af})`;
+        ctx.fillRect(cxa-40, cya-58, 80, 58);
+        // 体
+        ctx.fillStyle = `rgba(200,230,255,${0.88 * af})`;
+        ctx.fillRect(cxa-8,  cya-28, 16, 24);
+        ctx.fillRect(cxa-6,  cya-36, 12, 12);
+        // 腕
+        ctx.fillRect(cxa-16, cya-26, 10, 16);
+        ctx.fillRect(cxa+6,  cya-26, 10, 16);
+        // 足
+        ctx.fillRect(cxa-6,  cya-4,  6, 12);
+        ctx.fillRect(cxa+0,  cya-4,  6, 12);
+        // 頭
+        ctx.fillStyle = `rgba(220,240,255,${0.92 * af})`;
+        ctx.fillRect(cxa-10, cya-54, 20, 20);
+        // 髪（光の筋）
+        ctx.fillStyle = `rgba(150,210,255,${0.72 * af})`;
+        ctx.fillRect(cxa-12, cya-52, 4, 18);
+        ctx.fillRect(cxa+8,  cya-52, 4, 18);
+        ctx.fillRect(cxa-10, cya-38, 4, 14);
+        ctx.fillRect(cxa+6,  cya-38, 4, 14);
+        // 目（星の光）
+        const eyeA = 0.8 + 0.2 * Math.sin(this._blinkTimer * 4);
+        ctx.fillStyle = `rgba(255,255,255,${eyeA})`;
+        ctx.fillRect(cxa-7, cya-48, 5, 5);
+        ctx.fillRect(cxa+2, cya-48, 5, 5);
+        ctx.fillStyle = `rgba(80,160,255,${eyeA})`;
+        ctx.fillRect(cxa-6, cya-47, 3, 3);
+        ctx.fillRect(cxa+3, cya-47, 3, 3);
+        // 浮遊する星の欠片
+        const sp = Math.sin(this._blinkTimer * 3);
+        const so1 = Math.round(3 * sp);
+        const so2 = Math.round(-3 * sp);
+        ctx.fillStyle = `rgba(180,220,255,${0.6 * af})`;
+        ctx.fillRect(cxa-32, cya-40 + so1, 5, 5);
+        ctx.fillRect(cxa+27, cya-30 + so2, 5, 5);
+        ctx.fillRect(cxa-24, cya-14 + so1, 4, 4);
+        ctx.fillRect(cxa+20, cya-20 + so2, 4, 4);
+        ctx.fillStyle = `rgba(255,255,255,${0.45 * af})`;
+        ctx.fillRect(cxa-30, cya-42 + so1, 2, 2);
+        ctx.fillRect(cxa+29, cya-32 + so2, 2, 2);
+        ctx.fillRect(cxa-20, cya-58 + so1, 3, 3);
+        ctx.fillRect(cxa+16, cya-54 + so2, 3, 3);
+        break;
+      }
       default: {
         // 汎用敵
         const cxD = x + 40, cyD = y + 40;
