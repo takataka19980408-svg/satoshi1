@@ -44,7 +44,7 @@
     { "x": 6, "y": 1, "eventId": "final_decision",  "flag": "game_cleared"         }
   ],
   "exits": [
-    { "x": 6, "y": 11, "toMap": "white_mist_tower", "toX": 4, "toY": 1, "dir": "up" }
+    { "x": 6, "y": 11, "toMap": "star_bridge", "toX": 3, "toY": 1, "dir": "down" }
   ],
   "encounters": []
 }
