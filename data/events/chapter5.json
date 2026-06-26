@@ -8,10 +8,6 @@
       { "type": "dialog", "text": "（石が、青白く光り続けていた。\nその光が、道を照らしていた）", "speaker": "サトシ" },
       { "type": "wait", "duration": 300 },
       { "type": "dialog", "text": "あそこだ。", "speaker": "リル" },
-      { "type": "wait", "duration": 500 },
-      { "type": "dialog", "text": "始まったか。", "speaker": "ゼクト" },
-      { "type": "wait", "duration": 400 },
-      { "type": "dialog", "text": "（声だけが、風に乗って届いた）", "speaker": "サトシ" },
       { "type": "end" }
     ]
   },

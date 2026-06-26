@@ -95,13 +95,6 @@
       { "type": "wait", "duration": 400 },
       { "type": "dialog", "text": "行こう。", "speaker": "サトシ" },
       { "type": "save" },
-      { "type": "blackout", "duration": 900 },
-      { "type": "narration", "lines": ["地下を出ると——", "夜になっていた。"], "duration": 2500 },
-      { "type": "narration", "lines": ["空を見上げると、", "星の並びが、変わっていた。"], "duration": 3000 },
-      { "type": "narration", "lines": ["雲が、裂けた。"], "duration": 1800 },
-      { "type": "narration", "lines": ["空の高みに——", "巨大な遺跡が、浮かんでいた。"], "duration": 3000 },
-      { "type": "teleport", "toMap": "star_bridge", "toX": 3, "toY": 12 },
-      { "type": "clearBlackout", "duration": 1500 },
       { "type": "end" }
     ]
   }
