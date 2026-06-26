@@ -90,6 +90,11 @@
       { "type": "dialog", "text": "（サトシは、自分の手を見た）", "speaker": "サトシ" },
       { "type": "wait", "duration": 300 },
       { "type": "dialog", "text": "（星の民の血か——\n自分が何者なのか、\nまだ分からない）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "それと——\n王都の西側の建物の地下に\n古い文書庫がある。", "speaker": "エルド" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "星の民の記録が\nそこに眠っているはずだ。\nリルのことも、分かるかもしれない。", "speaker": "エルド" },
+      { "type": "wait", "duration": 400 },
       { "type": "save" },
       { "type": "dialog", "text": "（石が、いつもより穏やかに\n光っていた）", "speaker": "サトシ" },
       { "type": "end" }

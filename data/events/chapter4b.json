@@ -1,0 +1,96 @@
+{
+  "underground_enter": {
+    "condition": { "flagSet": "eldo_chapter4_seen", "flagNotSet": "underground_entered" },
+    "steps": [
+      { "type": "setFlag", "flag": "underground_entered" },
+      { "type": "bgm", "id": "forest" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "王都地下文書庫。\n石造りの壁に、古い燭台が並ぶ。", "speaker": "" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（空気が乾いている。\n長い間、誰も来ていなかったような）", "speaker": "サトシ" },
+      { "type": "dialog", "text": "なんか、すごいね。\n星の民の記録って、ここにあるの？", "speaker": "リル" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（石が、かすかに光った）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "star_records_found": {
+    "condition": { "flagSet": "underground_entered", "flagNotSet": "star_records_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "star_records_seen" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（石板に、星の文字が刻まれている）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "読める？", "speaker": "リル" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（サトシは石を近づけた。\n石が光ると、文字が読めた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "glow", "color": "#aaddff", "duration": 4000 },
+      { "type": "dialog", "text": "『星の意志は、生命に宿る。\n消えることを望む星に、\n守護者の末裔を探している』", "speaker": "石板" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "...守護者の末裔？", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（リルが、石板の前で\nじっと動かなかった）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "ril_portrait": {
+    "condition": { "flagSet": "star_records_seen", "flagNotSet": "ril_portrait_seen" },
+    "steps": [
+      { "type": "setFlag", "flag": "ril_portrait_seen" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（壁に、古い肖像画が掛かっていた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（赤い短髪。若い女性。\n服装は違うが——）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "...リル？", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "（リルが、肖像画を見ている。\n顔が、青白かった）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "知らない。\nでも——\n見たことがある気がする。\n夢の中で。", "speaker": "リル" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（石が、強く光った）", "speaker": "サトシ" },
+      { "type": "end" }
+    ]
+  },
+  "zect_return": {
+    "condition": { "flagSet": "ril_portrait_seen", "flagNotSet": "underground_cleared" },
+    "steps": [
+      { "type": "setFlag", "flag": "underground_cleared" },
+      { "type": "wait", "duration": 400 },
+      { "type": "shake", "duration": 500, "intensity": 3 },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（どこからか、声がした）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "見つけたか。\n早かったな。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "（影から、ゼクトが現れた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "お前が黒曜団を率いてるのか。\n星の石を奪うために？", "speaker": "サトシ" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "奪う？\n違う。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "黒曜団は、千年前から\nアステラを護るために存在する。\n護るために——\n眠らせ続けていた。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（リルが、息を呑んだ）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "護る？\nじゃあ——あたしたちを\n追いかけてきたのは？", "speaker": "リル" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "アステラが、あの子の意志で\n目を覚まそうとしている。\nそれを、誰かが見届けなければ\nならない。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 600 },
+      { "type": "dialog", "text": "（ゼクトは、リルを見た）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 300 },
+      { "type": "dialog", "text": "リル——\nお前は守護者の末裔だ。\n記憶を封じたのは、\nわたしじゃない。アステラ自身だ。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 700 },
+      { "type": "dialog", "text": "（ゼクトは、石を見た）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "アステラに会いに行きなさい。\n白霧の塔の頂——\nあの子が待っている。", "speaker": "ゼクト" },
+      { "type": "wait", "duration": 500 },
+      { "type": "dialog", "text": "（ゼクトの気配が、消えた）", "speaker": "サトシ" },
+      { "type": "wait", "duration": 400 },
+      { "type": "dialog", "text": "...分かった。\n行こう。", "speaker": "サトシ" },
+      { "type": "save" },
+      { "type": "end" }
+    ]
+  }
+}

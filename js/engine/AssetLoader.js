@@ -31,6 +31,8 @@ export class AssetLoader {
       'data/events/chapter2.json',
       'data/events/chapter3.json',
       'data/events/chapter4.json',
+      'data/events/chapter4b.json',
+      'data/events/chapter5.json',
     ];
     await Promise.allSettled(paths.map(p => this.loadJSON(p)));
   }

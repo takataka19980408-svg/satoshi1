@@ -59,8 +59,9 @@
     { "x": 9, "y": 5,  "eventId": "eldo_chapter4",   "flag": "eldo_chapter4_seen"   }
   ],
   "exits": [
-    { "x": 9, "y": 17, "toMap": "yakuba_town",       "toX": 9, "toY": 1,  "dir": "up"   },
-    { "x": 9, "y": 1,  "toMap": "white_mist_tower",  "toX": 5, "toY": 12, "dir": "down" }
+    { "x": 9, "y": 17, "toMap": "yakuba_town",          "toX": 9, "toY": 1,  "dir": "up"    },
+    { "x": 9, "y": 1,  "toMap": "white_mist_tower",     "toX": 5, "toY": 12, "dir": "down"  },
+    { "x": 6, "y": 6,  "toMap": "capital_underground",  "toX": 1, "toY": 5,  "dir": "right" }
   ],
   "encounters": []
 }

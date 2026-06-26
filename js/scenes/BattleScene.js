@@ -611,6 +611,9 @@ export class BattleScene extends Scene {
     // プレイヤー後ろ姿
     this._drawPlayerBack(ctx);
 
+    // モフ（同伴者）
+    this._drawMofuBattle(ctx);
+
     if (this._shake > 0) ctx.restore();
 
     // 味方ステータス
@@ -1111,5 +1114,115 @@ export class BattleScene extends Scene {
     ctx.font = '14px monospace';
     ctx.fillText('タップでつづける', CANVAS_W / 2, 530);
     ctx.globalAlpha = 1;
+  }
+
+  _drawMofuBattle(ctx) {
+    const cx = 130;
+    const dy = 238;
+
+    // 輪郭
+    ctx.fillStyle = '#03030a';
+    ctx.fillRect(cx-11, dy+1,  22, 13);
+    ctx.fillRect(cx-10, dy+12, 20, 14);
+    ctx.fillRect(cx-9,  dy+23, 18, 7);
+    ctx.fillRect(cx+7,  dy+13, 10, 10);
+
+    // 足
+    ctx.fillStyle = '#e8e4da';
+    ctx.fillRect(cx-8, dy+24, 5, 7);
+    ctx.fillRect(cx+3, dy+24, 5, 7);
+    ctx.fillStyle = '#d0a8b8';
+    ctx.fillRect(cx-8, dy+29, 5, 2);
+    ctx.fillRect(cx+3, dy+29, 5, 2);
+    ctx.fillStyle = '#e8bece';
+    ctx.fillRect(cx-8, dy+29, 2, 1);
+    ctx.fillRect(cx+3, dy+29, 2, 1);
+
+    // 体
+    ctx.fillStyle = '#f5f2e8';
+    ctx.fillRect(cx-9, dy+14, 18, 12);
+    ctx.fillStyle = '#d8d4c8';
+    ctx.fillRect(cx+7, dy+14, 2,  12);
+    ctx.fillRect(cx-9, dy+23, 18, 3);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx-5, dy+16, 10, 6);
+
+    // 尻尾
+    ctx.fillStyle = '#f5f2e8';
+    ctx.fillRect(cx+7, dy+14, 8, 8);
+    ctx.fillRect(cx+8, dy+13, 6, 2);
+    ctx.fillRect(cx+8, dy+22, 6, 2);
+    ctx.fillStyle = '#d8d4c8';
+    ctx.fillRect(cx+13, dy+14, 2, 8);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx+8, dy+16, 4, 4);
+
+    // 頭
+    ctx.fillStyle = '#f5f2e8';
+    ctx.fillRect(cx-7, dy+4, 14, 12);
+    ctx.fillStyle = '#03030a';
+    ctx.fillRect(cx-7, dy+4,  1, 1);
+    ctx.fillRect(cx+6, dy+4,  1, 1);
+    ctx.fillRect(cx-7, dy+15, 1, 1);
+    ctx.fillRect(cx+6, dy+15, 1, 1);
+    ctx.fillStyle = '#d8d4c8';
+    ctx.fillRect(cx+5, dy+4,  2, 12);
+    ctx.fillRect(cx-7, dy+14, 14, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx-4, dy+5, 8, 5);
+
+    // 耳
+    ctx.fillStyle = '#eae6da';
+    ctx.fillRect(cx-11, dy+2, 6, 12);
+    ctx.fillRect(cx+5,  dy+2, 6, 12);
+    ctx.fillStyle = '#03030a';
+    ctx.fillRect(cx-11, dy+2, 1, 1);
+    ctx.fillRect(cx+10, dy+2, 1, 1);
+    ctx.fillStyle = '#ff90bb';
+    ctx.fillRect(cx-10, dy+3, 4, 8);
+    ctx.fillRect(cx+6,  dy+3, 4, 8);
+    ctx.fillStyle = '#ffb8d0';
+    ctx.fillRect(cx-9, dy+4, 2, 5);
+    ctx.fillRect(cx+7, dy+4, 2, 5);
+    ctx.fillStyle = '#c8c4b8';
+    ctx.fillRect(cx-11, dy+12, 6, 2);
+    ctx.fillRect(cx+5,  dy+12, 6, 2);
+
+    // 目（大きくアニメ風）
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx-6, dy+5, 5, 7);
+    ctx.fillRect(cx+1, dy+5, 5, 7);
+    ctx.fillStyle = '#060412';
+    ctx.fillRect(cx-6, dy+5, 5, 6);
+    ctx.fillRect(cx+1, dy+5, 5, 6);
+    ctx.fillStyle = '#8844aa';
+    ctx.fillRect(cx-5, dy+5, 4, 5);
+    ctx.fillRect(cx+2, dy+5, 4, 5);
+    ctx.fillStyle = '#050310';
+    ctx.fillRect(cx-4, dy+5, 2, 5);
+    ctx.fillRect(cx+3, dy+5, 2, 5);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx-6, dy+5, 3, 3);
+    ctx.fillRect(cx+1, dy+5, 3, 3);
+    ctx.fillStyle = '#c8e8c0';
+    ctx.fillRect(cx-3, dy+9, 1, 1);
+    ctx.fillRect(cx+5, dy+9, 1, 1);
+
+    // 鼻（ハート）
+    ctx.fillStyle = '#e85090';
+    ctx.fillRect(cx-2, dy+12, 4, 2);
+    ctx.fillRect(cx-1, dy+11, 2, 1);
+    ctx.fillStyle = '#ff80b8';
+    ctx.fillRect(cx-2, dy+12, 1, 1);
+    ctx.fillRect(cx+1, dy+12, 1, 1);
+
+    // 口とひげ
+    ctx.fillStyle = '#a05870';
+    ctx.fillRect(cx-1, dy+14, 2, 1);
+    ctx.fillStyle = '#c8c0b4';
+    ctx.fillRect(cx-11, dy+11, 4, 1);
+    ctx.fillRect(cx+7,  dy+11, 4, 1);
+    ctx.fillRect(cx-11, dy+12, 3, 1);
+    ctx.fillRect(cx+8,  dy+12, 3, 1);
   }
 }

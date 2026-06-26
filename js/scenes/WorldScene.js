@@ -152,6 +152,8 @@ export class WorldScene extends Scene {
       this.game.loader.get('data/events/chapter2.json') || {},
       this.game.loader.get('data/events/chapter3.json') || {},
       this.game.loader.get('data/events/chapter4.json') || {},
+      this.game.loader.get('data/events/chapter4b.json') || {},
+      this.game.loader.get('data/events/chapter5.json') || {},
     );
     this.events.load(eventData);
     const npcDataAll = Object.assign(

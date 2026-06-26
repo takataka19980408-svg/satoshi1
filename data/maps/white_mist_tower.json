@@ -41,9 +41,10 @@
   },
   "npcs": [],
   "posEvents": [
-    { "x": 4, "y": 11, "eventId": "tower_enter", "flag": "tower_entered"  },
-    { "x": 4, "y": 6,  "eventId": "tower_climb", "flag": "tower_climbed"  },
-    { "x": 4, "y": 2,  "eventId": "tower_top",   "flag": "tower_top_seen" }
+    { "x": 4, "y": 11, "eventId": "tower_enter",   "flag": "tower_entered"    },
+    { "x": 4, "y": 6,  "eventId": "tower_climb",   "flag": "tower_climbed"    },
+    { "x": 4, "y": 2,  "eventId": "tower_top",     "flag": "tower_top_seen"   },
+    { "x": 4, "y": 1,  "eventId": "astera_appear", "flag": "astera_appear_seen" }
   ],
   "exits": [
     { "x": 5, "y": 13, "toMap": "royal_capital", "toX": 9, "toY": 2, "dir": "up" }

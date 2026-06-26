@@ -210,6 +210,7 @@ export class EventSystem {
         break;
 
       case 'clearBlackout':
+        w.showNarration([]);
         w.blackoutOut(step.duration || 600);
         this._waiting = true;
         this._waitTimer = (step.duration || 600) / 1000;
