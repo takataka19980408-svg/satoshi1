@@ -800,10 +800,20 @@ export class MapSystem {
 
       ctx.globalAlpha = 1;
       switch (ev.iconType) {
-        case 'mofu':   this._drawIconMofu(ctx, cx, cy);   break;
-        case 'puni':   this._drawIconPuni(ctx, cx, cy);   break;
-        case 'stairs': this._drawIconStairs(ctx, cx, cy); break;
-        default:       this._drawIconExclaim(ctx, cx, cy); break;
+        case 'stone':    this._drawIconStone(ctx, cx, cy);    break;
+        case 'star':     this._drawIconStar(ctx, cx, cy);     break;
+        case 'heart':    this._drawIconHeart(ctx, cx, cy);    break;
+        case 'dream':    this._drawIconDream(ctx, cx, cy);    break;
+        case 'scroll':   this._drawIconScroll(ctx, cx, cy);   break;
+        case 'zect':     this._drawIconZect(ctx, cx, cy);     break;
+        case 'eldo':     this._drawIconEldo(ctx, cx, cy);     break;
+        case 'boss':     this._drawIconBoss(ctx, cx, cy);     break;
+        case 'ril':      this._drawIconRil(ctx, cx, cy);      break;
+        case 'arrive':   this._drawIconArrive(ctx, cx, cy);   break;
+        case 'portrait': this._drawIconPortrait(ctx, cx, cy); break;
+        case 'mofu':     this._drawIconMofu(ctx, cx, cy);     break;
+        case 'puni':     this._drawIconPuni(ctx, cx, cy);     break;
+        case 'stairs':   this._drawIconStairs(ctx, cx, cy);   break;
       }
     }
 
@@ -811,20 +821,268 @@ export class MapSystem {
     ctx.restore();
   }
 
-  _drawIconExclaim(ctx, cx, cy) {
-    ctx.globalAlpha = 0.22;
-    ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.arc(cx, cy + 1, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = '#ffe033';
-    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#b87800'; ctx.lineWidth = 1.5; ctx.stroke();
+  _drawIconStone(ctx, cx, cy) {
+    // Blue-purple glowing gem
+    ctx.globalAlpha = 0.28;
+    ctx.fillStyle = '#8090ff';
+    ctx.fillRect(cx - 8, cy - 7, 16, 13);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#3a2800';
-    ctx.font = 'bold 11px monospace';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('!', cx, cy + 0.5);
-    ctx.textBaseline = 'alphabetic';
+    // Pedestal
+    ctx.fillStyle = '#1a1e42';
+    ctx.fillRect(cx - 4, cy + 3, 8, 4);
+    ctx.fillStyle = '#12142e';
+    ctx.fillRect(cx - 3, cy + 6, 6, 2);
+    // Stone body
+    ctx.fillStyle = '#1e3898';
+    ctx.fillRect(cx - 4, cy - 1, 8, 5);
+    ctx.fillStyle = '#3060c8';
+    ctx.fillRect(cx - 3, cy - 4, 6, 5);
+    ctx.fillStyle = '#5888e8';
+    ctx.fillRect(cx - 2, cy - 6, 4, 4);
+    // Core glow
+    ctx.fillStyle = '#a8c8ff';
+    ctx.fillRect(cx - 1, cy - 6, 3, 2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx, cy - 6, 1, 1);
+  }
+
+  _drawIconStar(ctx, cx, cy) {
+    // 4-point star sparkle (Astera, star temple)
+    ctx.fillStyle = '#b0d4ff';
+    // Horizontal beam
+    ctx.fillRect(cx - 7, cy - 1, 15, 3);
+    // Vertical beam
+    ctx.fillRect(cx - 1, cy - 7, 3, 15);
+    // Diagonal flares
+    ctx.fillRect(cx - 4, cy - 4, 2, 2);
+    ctx.fillRect(cx + 3, cy - 4, 2, 2);
+    ctx.fillRect(cx - 4, cy + 3, 2, 2);
+    ctx.fillRect(cx + 3, cy + 3, 2, 2);
+    // Bright center
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cx - 1, cy - 1, 3, 3);
+    // Mid highlights
+    ctx.fillStyle = '#e0f0ff';
+    ctx.fillRect(cx - 1, cy - 5, 3, 2);
+    ctx.fillRect(cx - 1, cy + 4, 3, 2);
+    ctx.fillRect(cx - 5, cy - 1, 2, 3);
+    ctx.fillRect(cx + 4, cy - 1, 2, 3);
+  }
+
+  _drawIconHeart(ctx, cx, cy) {
+    // Pink-red heart (mom, final decision)
+    ctx.fillStyle = '#d82050';
+    // Upper lobes
+    ctx.fillRect(cx - 6, cy - 5, 4, 4);
+    ctx.fillRect(cx + 2, cy - 5, 4, 4);
+    // Middle body
+    ctx.fillRect(cx - 7, cy - 2, 14, 4);
+    // Lower taper
+    ctx.fillRect(cx - 5, cy + 2, 10, 2);
+    ctx.fillRect(cx - 3, cy + 4, 6, 2);
+    ctx.fillRect(cx - 1, cy + 6, 2, 2);
+    // Highlights
+    ctx.fillStyle = '#ff80a8';
+    ctx.fillRect(cx - 5, cy - 4, 2, 2);
+    ctx.fillRect(cx + 3, cy - 4, 2, 2);
+    ctx.fillStyle = '#ffb0c8';
+    ctx.fillRect(cx - 4, cy - 4, 1, 1);
+  }
+
+  _drawIconDream(ctx, cx, cy) {
+    // Crescent moon (dream event)
+    ctx.fillStyle = '#f8e040';
+    // Left arc (backbone of crescent)
+    ctx.fillRect(cx - 6, cy - 2, 3, 5);
+    // Top arc
+    ctx.fillRect(cx - 5, cy - 5, 6, 3);
+    ctx.fillRect(cx - 3, cy - 7, 4, 2);
+    // Bottom arc
+    ctx.fillRect(cx - 5, cy + 3, 6, 3);
+    ctx.fillRect(cx - 3, cy + 6, 4, 2);
+    // Right tips (pointed ends)
+    ctx.fillRect(cx + 1, cy - 4, 3, 2);
+    ctx.fillRect(cx + 1, cy + 3, 3, 2);
+    // Bright edge
+    ctx.fillStyle = '#ffffc0';
+    ctx.fillRect(cx - 5, cy - 4, 1, 4);
+  }
+
+  _drawIconScroll(ctx, cx, cy) {
+    // Rolled parchment / ancient scroll
+    ctx.fillStyle = '#d4b878';
+    // Left roll curl
+    ctx.fillRect(cx - 8, cy - 4, 3, 9);
+    // Right roll curl
+    ctx.fillRect(cx + 5, cy - 4, 3, 9);
+    // Main body
+    ctx.fillStyle = '#e8d498';
+    ctx.fillRect(cx - 6, cy - 5, 12, 11);
+    // Top/bottom shadow bands
+    ctx.fillStyle = '#b89050';
+    ctx.fillRect(cx - 6, cy - 5, 12, 2);
+    ctx.fillRect(cx - 6, cy + 4, 12, 2);
+    // Roll highlights
+    ctx.fillStyle = '#f8ecbc';
+    ctx.fillRect(cx - 8, cy - 3, 1, 5);
+    ctx.fillRect(cx + 7, cy - 3, 1, 5);
+    // Text lines
+    ctx.fillStyle = '#806030';
+    ctx.fillRect(cx - 4, cy - 2, 8, 1);
+    ctx.fillRect(cx - 4, cy,     7, 1);
+    ctx.fillRect(cx - 4, cy + 2, 5, 1);
+  }
+
+  _drawIconZect(ctx, cx, cy) {
+    // Dark hooded sorcerer (Zect)
+    // Robe body
+    ctx.fillStyle = '#14101c';
+    ctx.fillRect(cx - 5, cy + 0, 10, 8);
+    ctx.fillRect(cx - 4, cy - 6, 8, 7);
+    ctx.fillRect(cx - 3, cy - 9, 6, 4);
+    // Face shadow
+    ctx.fillStyle = '#080610';
+    ctx.fillRect(cx - 3, cy - 7, 6, 5);
+    // Glowing purple eyes
+    ctx.globalAlpha = 0.45;
+    ctx.fillStyle = '#cc30ff';
+    ctx.fillRect(cx - 4, cy - 5, 3, 3);
+    ctx.fillRect(cx + 1, cy - 5, 3, 3);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#d820f8';
+    ctx.fillRect(cx - 3, cy - 5, 2, 2);
+    ctx.fillRect(cx + 2, cy - 5, 2, 2);
+    // Robe trim
+    ctx.fillStyle = '#2a1440';
+    ctx.fillRect(cx - 5, cy,     1, 8);
+    ctx.fillRect(cx + 4, cy,     1, 8);
+    ctx.fillRect(cx - 1, cy + 0, 2, 8); // center seam
+  }
+
+  _drawIconEldo(ctx, cx, cy) {
+    // Elder sage with staff (Eldo)
+    // Staff
+    ctx.fillStyle = '#7a5010';
+    ctx.fillRect(cx + 5, cy - 9, 2, 17);
+    // Staff top gem
+    ctx.fillStyle = '#d4a828';
+    ctx.fillRect(cx + 4, cy - 10, 3, 2);
+    ctx.fillStyle = '#f0cc50';
+    ctx.fillRect(cx + 5, cy - 10, 1, 1);
+    // Robe
+    ctx.fillStyle = '#7a5820';
+    ctx.fillRect(cx - 5, cy + 0, 10, 8);
+    // White collar trim
+    ctx.fillStyle = '#d4c8b0';
+    ctx.fillRect(cx - 5, cy + 0, 10, 2);
+    // Head
+    ctx.fillStyle = '#f0c070';
+    ctx.fillRect(cx - 3, cy - 6, 6, 7);
+    // White hair
+    ctx.fillStyle = '#e8e8e0';
+    ctx.fillRect(cx - 4, cy - 9, 8, 4);
+    ctx.fillRect(cx - 4, cy - 6, 2, 5);
+    // White beard
+    ctx.fillRect(cx - 3, cy + 0, 6, 3);
+    // Eyes
+    ctx.fillStyle = '#2a1800';
+    ctx.fillRect(cx - 2, cy - 4, 1, 2);
+    ctx.fillRect(cx + 1, cy - 4, 1, 2);
+  }
+
+  _drawIconBoss(ctx, cx, cy) {
+    // Red skull (boss battle)
+    // Shadow
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(cx - 6, cy + 7, 12, 3);
+    ctx.globalAlpha = 1;
+    // Cranium
+    ctx.fillStyle = '#9a0808';
+    ctx.fillRect(cx - 5, cy - 8, 10, 10);
+    ctx.fillRect(cx - 4, cy - 10, 8, 3);
+    // Jaw
+    ctx.fillStyle = '#b81010';
+    ctx.fillRect(cx - 4, cy + 1, 8, 5);
+    // Eye sockets
+    ctx.fillStyle = '#080000';
+    ctx.fillRect(cx - 4, cy - 7, 3, 4);
+    ctx.fillRect(cx + 1, cy - 7, 3, 4);
+    // Red glow in eyes
+    ctx.fillStyle = '#ff1818';
+    ctx.fillRect(cx - 3, cy - 6, 2, 2);
+    ctx.fillRect(cx + 2, cy - 6, 2, 2);
+    // Nose cavity
+    ctx.fillStyle = '#080000';
+    ctx.fillRect(cx - 1, cy - 2, 2, 2);
+    // Teeth
+    ctx.fillStyle = '#e0cccc';
+    ctx.fillRect(cx - 4, cy + 2, 2, 3);
+    ctx.fillRect(cx - 2, cy + 2, 2, 3);
+    ctx.fillRect(cx,     cy + 2, 2, 3);
+    ctx.fillRect(cx + 2, cy + 2, 2, 3);
+    // Skull highlight
+    ctx.fillStyle = '#c82020';
+    ctx.fillRect(cx - 3, cy - 9, 4, 2);
+  }
+
+  _drawIconRil(ctx, cx, cy) {
+    // Scaled-down Ril character
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(0.5, 0.5);
+    this._drawNpc(ctx, { sprite: 'ril', dir: 'down' }, -16, -14);
+    ctx.restore();
+  }
+
+  _drawIconArrive(ctx, cx, cy) {
+    // Green down arrow (arrival marker)
+    ctx.fillStyle = '#28c828';
+    // Shaft
+    ctx.fillRect(cx - 2, cy - 8, 4, 10);
+    // Arrowhead
+    ctx.fillRect(cx - 6, cy + 1, 12, 3);
+    ctx.fillRect(cx - 4, cy + 4, 8,  2);
+    ctx.fillRect(cx - 2, cy + 6, 4,  2);
+    // Highlight on shaft
+    ctx.fillStyle = '#70f070';
+    ctx.fillRect(cx - 1, cy - 8, 2, 9);
+    ctx.fillRect(cx - 5, cy + 1, 2, 3);
+    // Shadow
+    ctx.fillStyle = '#108010';
+    ctx.fillRect(cx + 2, cy - 8, 2, 10);
+  }
+
+  _drawIconPortrait(ctx, cx, cy) {
+    // Framed portrait (Ril's likeness)
+    // Frame (gold/wood)
+    ctx.fillStyle = '#8a6020';
+    ctx.fillRect(cx - 7, cy - 8, 14, 17);
+    // Frame border highlight
+    ctx.fillStyle = '#d4a828';
+    ctx.fillRect(cx - 7, cy - 8, 14, 2);
+    ctx.fillRect(cx - 7, cy - 8, 2, 17);
+    // Inner canvas
+    ctx.fillStyle = '#f0e8d0';
+    ctx.fillRect(cx - 5, cy - 6, 10, 13);
+    // Background wash
+    ctx.fillStyle = '#d8f0f8';
+    ctx.fillRect(cx - 4, cy - 5, 8, 8);
+    // Ril's body (simple silhouette)
+    ctx.fillStyle = '#5880d8';
+    ctx.fillRect(cx - 3, cy + 1, 6, 5);
+    // Head
+    ctx.fillStyle = '#f8d898';
+    ctx.fillRect(cx - 2, cy - 4, 4, 5);
+    // Yellow hair
+    ctx.fillStyle = '#f0e040';
+    ctx.fillRect(cx - 3, cy - 6, 6, 3);
+    ctx.fillRect(cx - 3, cy - 4, 2, 4);
+    ctx.fillRect(cx + 1, cy - 4, 2, 4);
+    // Eyes
+    ctx.fillStyle = '#1a1830';
+    ctx.fillRect(cx - 1, cy - 2, 1, 1);
+    ctx.fillRect(cx + 1, cy - 2, 1, 1);
   }
 
   _drawIconStairs(ctx, cx, cy) {
