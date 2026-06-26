@@ -55,7 +55,7 @@ export class MapSystem {
     this.camY = Math.max(0, Math.min(playerPixelY - TILE_H   / 2 + TILE_SIZE / 2, maxCamY));
   }
 
-  render(ctx, npcs = [], playerSprite = null) {
+  render(ctx, npcs = [], playerSprite = null, follower = null) {
     if (!this.mapData) return;
     const { width, height, layers } = this.mapData;
 
@@ -100,6 +100,13 @@ export class MapSystem {
       const dx = npc.x * TILE_SIZE - this.camX;
       const dy = TILE_Y0 + npc.y * TILE_SIZE - this.camY;
       this._drawNpc(ctx, npc, dx, dy);
+    }
+
+    // 追従キャラ描画（リル）
+    if (follower) {
+      const fdx = follower.px - this.camX;
+      const fdy = TILE_Y0 + follower.py - this.camY;
+      this._drawNpc(ctx, { sprite: 'ril', dir: follower.dir }, fdx, fdy);
     }
 
     // プレイヤー描画

@@ -34,6 +34,8 @@ export class WorldScene extends Scene {
     this._initialized   = false;
     this._encounterCooldown = 0;
     this._narrationLines = [];
+    this._follower = null;
+    this._prevPlayerTile = null;
     this._touchStartHandler = null;
     this._touchMoveHandler  = null;
     this._touchEndHandler   = null;
@@ -90,6 +92,16 @@ export class WorldScene extends Scene {
       params.dir ?? this.game.state.playerDir ?? 'down',
     );
     this.map.updateCamera(this.player.px, this.player.py);
+
+    if (this.game.state.flags?.['ril_joined']) {
+      this._follower = {
+        px: this.player.px, py: this.player.py,
+        targetPx: this.player.px, targetPy: this.player.py,
+        dir: this.player.dir,
+      };
+    } else {
+      this._follower = null;
+    }
 
     const bgm = this.map.mapData?.bgm || 'village';
     this.game.audio.playBgm(bgm);
@@ -203,6 +215,7 @@ export class WorldScene extends Scene {
     if (this._inputLock || this.events.isRunning || this.dialog.active) {
       this.player.update(dt);
       this.map.updateCamera(this.player.px, this.player.py);
+      this._updateFollower(dt);
       this._handleDialogInput();
       return;
     }
@@ -210,6 +223,7 @@ export class WorldScene extends Scene {
     this._handleMovement(dt);
     this.player.update(dt);
     this.map.updateCamera(this.player.px, this.player.py);
+    this._updateFollower(dt);
 
     if (!this.player.moving) {
       this._handleActionInput();
@@ -232,6 +246,7 @@ export class WorldScene extends Scene {
 
     if (dx === 0 && dy === 0) return;
     if (dy !== 0) dx = 0;
+    this._prevPlayerTile = { x: this.player.tileX, y: this.player.tileY, dir: this.player.dir };
     this.player.tryMove(dx, dy, this.map);
   }
 
@@ -359,6 +374,7 @@ export class WorldScene extends Scene {
           const npcEntity = this.npcs.find(n => n.id === adjNpc.id);
           if (npcEntity) { this._talkToNpc(npcEntity); return; }
         }
+        this._prevPlayerTile = { x: this.player.tileX, y: this.player.tileY, dir: this.player.dir };
         this.player.tryMove(dx, dy, this.map);
       }
     }
@@ -410,6 +426,31 @@ export class WorldScene extends Scene {
     }
   }
 
+  _updateFollower(dt) {
+    if (this.events.flagSet('ril_joined') && !this._follower) {
+      this._follower = {
+        px: this.player.px, py: this.player.py,
+        targetPx: this.player.px, targetPy: this.player.py,
+        dir: this.player.dir,
+      };
+    }
+    if (!this._follower) return;
+    const FOLLOW_SPEED = 5 * TILE_SIZE;
+    const fdx = this._follower.targetPx - this._follower.px;
+    const fdy = this._follower.targetPy - this._follower.py;
+    const dist = Math.sqrt(fdx * fdx + fdy * fdy);
+    if (dist > 0.5) {
+      const step = FOLLOW_SPEED * dt;
+      if (step >= dist) {
+        this._follower.px = this._follower.targetPx;
+        this._follower.py = this._follower.targetPy;
+      } else {
+        this._follower.px += (fdx / dist) * step;
+        this._follower.py += (fdy / dist) * step;
+      }
+    }
+  }
+
   _talkToNpc(npc) {
     this.game.audio.playSfx('confirm');
     const lines = npc.getDialog(this.game.state.flags);
@@ -427,6 +468,12 @@ export class WorldScene extends Scene {
   _onPlayerStep() {
     const tx = this.player.tileX;
     const ty = this.player.tileY;
+
+    if (this._follower && this._prevPlayerTile) {
+      this._follower.targetPx = this._prevPlayerTile.x * TILE_SIZE;
+      this._follower.targetPy = this._prevPlayerTile.y * TILE_SIZE;
+      this._follower.dir = this._prevPlayerTile.dir;
+    }
 
     const exit = this.map.getExit(tx, ty);
     if (exit) {
@@ -473,6 +520,13 @@ export class WorldScene extends Scene {
       this.game.audio.playBgm(bgm);
       this.player.setPosition(toX, toY, toDir);
       this.map.updateCamera(this.player.px, this.player.py);
+      if (this._follower) {
+        this._follower.px = this.player.px;
+        this._follower.py = this.player.py;
+        this._follower.targetPx = this.player.px;
+        this._follower.targetPy = this.player.py;
+        this._follower.dir = toDir;
+      }
       this._inputLock = false;
     });
   }
@@ -542,8 +596,12 @@ export class WorldScene extends Scene {
     if (this._shakeX !== 0 || this._shakeY !== 0) {
       ctx.translate(Math.round(this._shakeX), Math.round(this._shakeY));
     }
-    const npcSprites = this.npcs.map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id, dir: n.dir }));
-    this.map.render(ctx, npcSprites, this.player.spriteInfo);
+    const rilJoined = this.events.flagSet('ril_joined');
+    const npcSprites = this.npcs
+      .filter(n => !(rilJoined && n.id === 'ril'))
+      .map(n => ({ x: n.x, y: n.y, sprite: n.sprite, id: n.id, dir: n.dir }));
+    const followerSprite = (rilJoined && this._follower) ? this._follower : null;
+    this.map.render(ctx, npcSprites, this.player.spriteInfo, followerSprite);
     ctx.restore();
 
     // Atmospheric glow over game area
