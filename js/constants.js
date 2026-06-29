@@ -56,4 +56,4 @@ export const TILE_COLORS = {
 };
 
 export const TILE_PASSABLE = new Set([1, 2, 6, 8, 9, 10, 13]);
-export const TILE_ENCOUNTER = new Set([8]);
+export const TILE_ENCOUNTER = new Set([1, 8, 10]);

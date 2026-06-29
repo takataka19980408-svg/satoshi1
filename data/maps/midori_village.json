@@ -920,7 +920,7 @@
   "posEvents": [
     {
       "x": 9,
-      "y": 3,
+      "y": 4,
       "eventId": "house_start",
       "flag": "house_start_done",
       "iconType": "stone"
@@ -973,5 +973,10 @@
       "dir": "up"
     }
   ],
-  "encounters": []
+  "encounters": [
+    {
+      "id": "forest_slime",
+      "weight": 100
+    }
+  ]
 }

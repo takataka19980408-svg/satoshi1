@@ -790,5 +790,10 @@
       "dir": "right"
     }
   ],
-  "encounters": []
+  "encounters": [
+    {
+      "id": "mine_bat",
+      "weight": 100
+    }
+  ]
 }

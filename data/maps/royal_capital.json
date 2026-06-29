@@ -886,5 +886,10 @@
       "dir": "right"
     }
   ],
-  "encounters": []
+  "encounters": [
+    {
+      "id": "stone_imp",
+      "weight": 100
+    }
+  ]
 }
